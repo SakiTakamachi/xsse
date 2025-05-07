@@ -10,7 +10,11 @@ It supports both x86_64 (SSE2) and ARM NEON, enabling developers to write portab
 
 - Support for older APIs that rely on `_m64` is not provided.
 
+- APIs like `_mm_undefined_si128`, which are only available on certain platforms, are not supported.
+
 - Functions that are difficult to replicate in NEON, such as `_mm_stream_si128`, are substituted with regular store instructions.
+
+- APIs like `_mm_clflush`, which cannot be reproduced on NEON, are replaced with no-op macros.
 
 Recommended: C99 or later
 

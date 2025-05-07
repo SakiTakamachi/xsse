@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2025-05-08
+
+### Added
+- Implemented several SSE2 APIs that were previously missing.
+
+---
+
 ## [1.0.0] - 2025-05-07
 
 ### Added
