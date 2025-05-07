@@ -44,6 +44,7 @@
 
 #elif defined(__aarch64__) || defined(_M_ARM64)
 #include <arm_neon.h>
+#include <string.h>
 #define XSSE2
 
 typedef int8x16_t __m128i;
@@ -88,11 +89,15 @@ typedef int8x16_t __m128i;
 
 #define _mm_load_si128(x) (vld1q_s8((const int8_t *) (x)))
 #define _mm_loadu_si128(x) _mm_load_si128(x)
+#define _mm_loadl_epi64(x) (vreinterpretq_s8_s64(vcombine_s64(vld1_s64((const int64_t*) x), vdup_n_s64(0))))
 
+#define _mm_storel_epi64(to, x) (vst1_u64((uint64_t*) (to), vget_low_u64(vreinterpretq_u64_s8(x))))
 #define _mm_store_si128(to, x) (vst1q_s8((int8_t *) (to), x))
 #define _mm_storeu_si128(to, x) _mm_store_si128(to, x)
 #define _mm_stream_si128(to, x) _mm_store_si128(to, x)
 #define _mm_stream_si32(to, x) (*(volatile int32_t *)(to) = (int32_t)(x))
+#define _mm_stream_si64(to, x) (*(volatile int64_t*)(to) = (int64_t)(x))
+
 
 
 /*****************************************************************************
@@ -131,6 +136,7 @@ static XSSE_FORCE_INLINE __m128i _mm_sll_epi64(__m128i x, __m128i count)
 
 #define _mm_slli_si128(x, imm) \
 	((imm) >= 16 ? vdupq_n_s8(0) : vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 16 - (imm))))
+#define _mm_bslli_si128(x, imm) _mm_slli_si128(x, imm)
 
 #define _mm_srai_epi16(x, count) (vreinterpretq_s8_s16(vshrq_n_s16(vreinterpretq_s16_s8(x), (count))))
 #define _mm_srai_epi32(x, count) (vreinterpretq_s8_s32(vshrq_n_s32(vreinterpretq_s32_s8(x), (count))))
@@ -176,6 +182,7 @@ static XSSE_FORCE_INLINE __m128i _mm_srl_epi64(__m128i x, __m128i count)
 
 #define _mm_srli_si128(x, imm) \
 	((imm) >= 16 ? vdupq_n_s8(0) : vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), (imm))))
+#define _mm_bsrli_si128(x, imm) _mm_srli_si128(x, imm)
 
 
 /*****************************************************************************
@@ -404,6 +411,20 @@ static XSSE_FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i x, int imm)
 #define _mm_unpacklo_epi64(a, b) (vreinterpretq_s8_s64(vzip1q_s64(vreinterpretq_s64_s8(a), vreinterpretq_s64_s8(b))))
 
 #define _mm_move_epi64(x) (vreinterpretq_s8_s64((int64x2_t) { vgetq_lane_s64(vreinterpretq_s64_s8(x), 0), 0 }))
+
+#define _mm_clflush(x) ((void) 0)
+static inline void _mm_mfence(void)
+{
+	__asm__ __volatile__("dsb sy" ::: "memory");
+}
+static inline void _mm_lfence(void)
+{
+	__asm__ __volatile__("dsb ld" ::: "memory");
+}
+static inline void _mm_pause(void)
+{
+	__asm__ __volatile__("yield");
+}
 
 #endif
 

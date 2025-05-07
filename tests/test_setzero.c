@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <cmocka.h>
 
 #include "../src/xsse.h"
