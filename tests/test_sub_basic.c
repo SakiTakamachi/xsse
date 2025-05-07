@@ -17,7 +17,7 @@ static void test_mm_sub_epi8_basic(void **state)
 
 	int8_t expected[16] = { -1, 0, 1, 2, 5, 6, 7, 8, -1, -2, -3, -4, -3, -4, -5, -6 };
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -35,7 +35,7 @@ static void test_mm_sub_epi16_basic(void **state)
 
 	int16_t expected[8] = { -1, 0, 3, 4, -5, -6, -5, -6 };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -53,7 +53,7 @@ static void test_mm_sub_epi32_basic(void **state)
 
 	int32_t expected[4] = { -1, 2, 1, 4 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -71,7 +71,7 @@ static void test_mm_sub_epi64_basic_1(void **state)
 
 	int64_t expected[2] = { 0, 11 };
 	int64_t actual[2];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
 		assert_true(actual[i] == expected[i]);
@@ -89,7 +89,7 @@ static void test_mm_sub_epi64_basic_2(void **state)
 
 	int64_t expected[2] = { -2, -9 };
 	int64_t actual[2];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
 		assert_true(actual[i] == expected[i]);

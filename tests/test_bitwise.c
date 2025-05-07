@@ -26,7 +26,7 @@ static void test_mm_or_si128(void **state)
 		0xF0, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 	};
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -53,7 +53,7 @@ static void test_mm_xor_si128(void **state)
 		0xF0, 0xFF, 0x00, 0x0F, 0xFF, 0xF0, 0x0F, 0x00
 	};
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -80,7 +80,7 @@ static void test_mm_and_si128(void **state)
 		0x00, 0x00, 0xF0, 0xF0, 0x00, 0x0F, 0xF0, 0xFF
 	};
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -107,7 +107,7 @@ static void test_mm_andnot_si128(void **state)
 		0xF0, 0xF0, 0x00, 0x00, 0xFF, 0xF0, 0x0F, 0x00
 	};
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);

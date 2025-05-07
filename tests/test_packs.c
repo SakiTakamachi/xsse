@@ -17,7 +17,7 @@ static void test_mm_packs_epi16(void **state)
 
 	int8_t expected[16] = { INT8_MIN, -6, -5, -4, INT8_MAX, 2, 1, 0, INT8_MIN, -60, -50, -40, INT8_MAX, 30, 20, 10 };
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -35,7 +35,7 @@ static void test_mm_packs_epi32(void **state)
 
 	int16_t expected[8] = { INT16_MIN, INT16_MAX, 2, 1, INT16_MIN, INT16_MAX, 20, 10 };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -53,7 +53,7 @@ static void test_mm_packus_epi16(void **state)
 
 	uint8_t expected[16] = { 0, 0, 0, 0, UINT8_MAX, 2, 1, 0, 0, 0, 0, 0, UINT8_MAX, 30, 20, 10 };
 	uint8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_true(actual[i] == expected[i]);

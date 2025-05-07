@@ -26,7 +26,7 @@ static void test_mm_shuffle_epi32(void **state)
 
 	int32_t expected[4] = { 0, 300, 100, 200 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_true(actual[i] == expected[i]);
@@ -43,7 +43,7 @@ static void test_mm_shufflehi_epi16(void **state)
 
 	int16_t expected[8] = { 700, 600, 500, 400, 0, 300, 100, 200};
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_true(actual[i] == expected[i]);
@@ -60,7 +60,7 @@ static void test_mm_shufflelo_epi16(void **state)
 
 	int16_t expected[8] = { 400, 700, 500, 600, 300, 200, 100, 0};
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_true(actual[i] == expected[i]);

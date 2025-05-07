@@ -17,7 +17,7 @@ static void test_mm_insert_epi16(void **state)
 
 	int16_t expected[8] = { 10, 20, -50, 40, 50, 60, 70, 80 };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);

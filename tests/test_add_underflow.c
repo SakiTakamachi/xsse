@@ -20,7 +20,7 @@ static void test_mm_add_epi8_underflow(void **state)
         INT8_MAX - 7, INT8_MAX - 8, INT8_MAX - 9, INT8_MAX - 10, INT8_MAX - 11, INT8_MAX - 12, INT8_MAX - 13, INT8_MAX - 14
     };
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -38,7 +38,7 @@ static void test_mm_add_epi16_underflow(void **state)
 
 	int16_t expected[8] = { INT16_MIN, INT16_MAX, INT16_MAX - 1, INT16_MAX - 2, INT16_MAX - 3, INT16_MAX - 4, INT16_MAX - 5, INT16_MAX - 6 };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -56,7 +56,7 @@ static void test_mm_add_epi32_underflow(void **state)
 
 	int32_t expected[4] = { INT32_MIN, INT32_MAX, INT32_MAX - 1, INT32_MAX - 2 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -74,7 +74,7 @@ static void test_mm_add_epi64_underflow(void **state)
 
 	int64_t expected[2] = { INT64_MIN, INT64_MAX };
 	int64_t actual[2];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
 		assert_true(actual[i] == expected[i]);

@@ -87,15 +87,15 @@ typedef int8x16_t __m128i;
 
 #define _mm_setzero_si128() (vdupq_n_s8(0))
 
-#define _mm_load_si128(x) (vld1q_s8((const int8_t *) (x)))
+#define _mm_load_si128(x) (vld1q_s8((const int8_t*) (x)))
 #define _mm_loadu_si128(x) _mm_load_si128(x)
 #define _mm_loadl_epi64(x) (vreinterpretq_s8_s64(vcombine_s64(vld1_s64((const int64_t*) x), vdup_n_s64(0))))
 
 #define _mm_storel_epi64(to, x) (vst1_u64((uint64_t*) (to), vget_low_u64(vreinterpretq_u64_s8(x))))
-#define _mm_store_si128(to, x) (vst1q_s8((int8_t *) (to), x))
+#define _mm_store_si128(to, x) (vst1q_s8((int8_t*) (to), x))
 #define _mm_storeu_si128(to, x) _mm_store_si128(to, x)
 #define _mm_stream_si128(to, x) _mm_store_si128(to, x)
-#define _mm_stream_si32(to, x) (*(volatile int32_t *)(to) = (int32_t)(x))
+#define _mm_stream_si32(to, x) (*(volatile int32_t*)(to) = (int32_t)(x))
 #define _mm_stream_si64(to, x) (*(volatile int64_t*)(to) = (int64_t)(x))
 
 

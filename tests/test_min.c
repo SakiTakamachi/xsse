@@ -17,7 +17,7 @@ static void test_mm_min_epu8(void **state)
 
 	uint8_t expected[16] = { 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 200 };
 	uint8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_true(actual[i] == expected[i]);
@@ -35,7 +35,7 @@ static void test_mm_min_epi16(void **state)
 
 	uint16_t expected[8] = { 50, 50, 50, 50, 50, 50, 50, 200 };
 	uint16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_true(actual[i] == expected[i]);
