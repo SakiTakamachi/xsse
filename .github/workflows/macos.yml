@@ -1,0 +1,33 @@
+name: MacOS Workflow
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+
+jobs:
+  tests:
+    name: Tests on MacOS
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install cmake cmocka
+
+      - name: Configure
+        run: |
+          cmake -S . -B build
+
+      - name: Build tests
+        run: |
+          cmake --build build --parallel
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure --verbose --parallel

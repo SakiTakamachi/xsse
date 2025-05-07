@@ -1,0 +1,64 @@
+name: Push
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.url || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  Ubuntu:
+    name: Tests on Ubuntu 64-bit
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm]
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+          - arch: arm
+            runner: ubuntu-24.04-arm
+
+    uses: ./.github/workflows/ubuntu.yml
+    with:
+      runner: ${{ matrix.runner }}
+
+  MacOS:
+    name: Tests on MacOS 64-bit
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm]
+        include:
+          - arch: x64
+            runner: macos-13
+          - arch: arm
+            runner: macos-latest
+
+    uses: ./.github/workflows/macos.yml
+    with:
+      runner: ${{ matrix.runner }}
+
+  Windows:
+    name: Tests on Windows 64-bit
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64]
+        include:
+          - arch: x64
+            runner: windows-latest
+
+    uses: ./.github/workflows/windows.yml
+    with:
+      arch: ${{ matrix.arch }}
+      runner: ${{ matrix.runner }}

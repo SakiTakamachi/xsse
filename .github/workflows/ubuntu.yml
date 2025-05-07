@@ -1,0 +1,34 @@
+name: Ubuntu Workflow
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+
+jobs:
+  tests:
+    name: Tests on Ubuntu
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y cmake gcc libcmocka-dev
+
+      - name: Configure
+        run: |
+          cmake -S . -B build
+
+      - name: Build tests
+        run: |
+          cmake --build build --parallel
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure --verbose --parallel

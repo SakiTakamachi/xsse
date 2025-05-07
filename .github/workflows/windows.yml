@@ -1,0 +1,41 @@
+name: Windows Workflow
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
+
+jobs:
+  tests:
+    name: Tests on Windows
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v4
+
+      - name: Install vcpkg for x64
+        if: ${{ inputs.arch == 'x64' }}
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+          vcpkgTriplet: "x64-windows"
+
+      - name: Configure for x64
+        if: ${{ inputs.arch == 'x64' }}
+        run: >
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          "-DVCPKG_TARGET_TRIPLET=x64-windows"
+
+      - name: Build tests for x64
+        if: ${{ inputs.arch == 'x64' }}
+        run: cmake --build build --parallel
+
+      - name: Run Tests for x64
+        if: ${{ inputs.arch == 'x64' }}
+        run: ctest --test-dir build --output-on-failure -C Debug --parallel
