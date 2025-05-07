@@ -34,8 +34,8 @@ jobs:
 
       - name: Build tests for x64
         if: ${{ inputs.arch == 'x64' }}
-        run: cmake --build build --parallel
+        run: cmake --build build
 
       - name: Run Tests for x64
         if: ${{ inputs.arch == 'x64' }}
-        run: ctest --test-dir build --output-on-failure -C Debug --parallel
+        run: ctest --test-dir build --output-on-failure -C Debug
