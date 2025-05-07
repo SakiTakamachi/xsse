@@ -87,7 +87,7 @@ static void test_mm_storeu_si128_unsigned(void **state)
 
 	uint8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
 	uint8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, x);
+	_mm_storeu_si128((__m128i*) actual, x);
 
 	for (int i = 0; i < 16; i++) {
 		assert_true(actual[i] == expected[i]);
@@ -110,7 +110,7 @@ static void test_mm_stream_si128(void **state)
     int8_t actual[16];
 #endif
 
-	_mm_stream_si128((__m128i *) actual, x);
+	_mm_stream_si128((__m128i*) actual, x);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);

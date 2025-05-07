@@ -17,7 +17,7 @@ static void test_mm_sad_epu8(void **state)
 
 	uint16_t expected[8] = { 44, 0, 0, 0, 22, 0, 0, 0 };
 	uint16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_true(actual[i] == expected[i]);

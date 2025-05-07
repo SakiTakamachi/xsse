@@ -20,7 +20,7 @@ static void test_mm_sub_epi8_overflow(void **state)
         INT8_MIN + 7, INT8_MIN + 8, INT8_MIN + 9, INT8_MIN + 10, INT8_MIN + 11, INT8_MIN + 12, INT8_MIN + 13, INT8_MIN + 14
     };
 	int8_t actual[16];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -38,7 +38,7 @@ static void test_mm_sub_epi16_overflow(void **state)
 
 	int16_t expected[8] = { INT16_MAX, INT16_MIN, INT16_MIN + 1, INT16_MIN + 2, INT16_MIN + 3, INT16_MIN + 4, INT16_MIN + 5, INT16_MIN + 6 };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -56,7 +56,7 @@ static void test_mm_sub_epi32_overflow(void **state)
 
 	int32_t expected[4] = { INT32_MAX, INT32_MIN, INT32_MIN + 1, INT32_MIN + 2 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -74,7 +74,7 @@ static void test_mm_sub_epi64_overflow(void **state)
 
 	int64_t expected[2] = { INT64_MAX, INT64_MIN };
 	int64_t actual[2];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
 		assert_true(actual[i] == expected[i]);

@@ -17,7 +17,7 @@ static void test_mm_madd_epi16(void **state)
 
 	int32_t expected[4] = { 250, -350, -3050, 5650 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);

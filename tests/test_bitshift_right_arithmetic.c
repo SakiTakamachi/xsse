@@ -16,7 +16,7 @@ static void test_mm_srai_epi16(void **state)
 
 	int16_t expected[8] = { 0x0000, 0x0000, 0x0001, 0x000F, 0x00F0, 0xFFFF, 0xF800, 0x07FF };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -33,7 +33,7 @@ static void test_mm_srai_epi32(void **state)
 
 	int32_t expected[4] = { 0x00000000, 0x00000000, 0xFFFFFFF0, 0xFFF80080 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -51,7 +51,7 @@ static void test_mm_sra_epi16(void **state)
 
 	int16_t expected[8] = { 0x0000, 0x0000, 0x0001, 0x000F, 0x00F0, 0xFFFF, 0xF800, 0x07FF };
 	int16_t actual[8];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
@@ -69,7 +69,7 @@ static void test_mm_sra_epi32(void **state)
 
 	int32_t expected[4] = { 0x00000000, 0x00000000, 0xFFFFFFF0, 0xFFF80080 };
 	int32_t actual[4];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);

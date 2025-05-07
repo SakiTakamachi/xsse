@@ -16,7 +16,7 @@ static void test_mm_move_epi64(void **state)
 
 	int64_t expected[2] = { 200, 0 };
 	int64_t actual[2];
-	_mm_storeu_si128((__m128i *) actual, result);
+	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
 		assert_true(actual[i] == expected[i]);
