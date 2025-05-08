@@ -12,7 +12,7 @@ static void test_mm_move_epi64(void **state)
 
 	__m128i x = _mm_set_epi64x(100, 200);
 
-    __m128i result = _mm_move_epi64(x);
+	__m128i result = _mm_move_epi64(x);
 
 	int64_t expected[2] = { 200, 0 };
 	int64_t actual[2];

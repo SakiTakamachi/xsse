@@ -26,7 +26,7 @@ int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_mfence),
-        cmocka_unit_test(test_mm_lfence)
+		cmocka_unit_test(test_mm_lfence)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -21,7 +21,7 @@ static void test_mm_cmpeq_epi8(void **state)
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpeq_epi16(void **state)
@@ -39,7 +39,7 @@ static void test_mm_cmpeq_epi16(void **state)
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpeq_epi32_1(void **state)
@@ -57,7 +57,7 @@ static void test_mm_cmpeq_epi32_1(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpeq_epi32_2(void **state)
@@ -75,7 +75,7 @@ static void test_mm_cmpeq_epi32_2(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmplt_epi8(void **state)
@@ -93,7 +93,7 @@ static void test_mm_cmplt_epi8(void **state)
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmplt_epi16(void **state)
@@ -111,7 +111,7 @@ static void test_mm_cmplt_epi16(void **state)
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmplt_epi32_1(void **state)
@@ -129,7 +129,7 @@ static void test_mm_cmplt_epi32_1(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmplt_epi32_2(void **state)
@@ -147,7 +147,7 @@ static void test_mm_cmplt_epi32_2(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpgt_epi8(void **state)
@@ -165,7 +165,7 @@ static void test_mm_cmpgt_epi8(void **state)
 
 	for (int i = 0; i < 16; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpgt_epi16(void **state)
@@ -183,7 +183,7 @@ static void test_mm_cmpgt_epi16(void **state)
 
 	for (int i = 0; i < 8; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpgt_epi32_1(void **state)
@@ -201,7 +201,7 @@ static void test_mm_cmpgt_epi32_1(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 static void test_mm_cmpgt_epi32_2(void **state)
@@ -219,24 +219,24 @@ static void test_mm_cmpgt_epi32_2(void **state)
 
 	for (int i = 0; i < 4; i++) {
 		assert_int_equal(actual[i], expected[i]);
-    }
+	}
 }
 
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_cmpeq_epi8),
-        cmocka_unit_test(test_mm_cmpeq_epi16),
-        cmocka_unit_test(test_mm_cmpeq_epi32_1),
-        cmocka_unit_test(test_mm_cmpeq_epi32_2),
-        cmocka_unit_test(test_mm_cmplt_epi8),
-        cmocka_unit_test(test_mm_cmplt_epi16),
-        cmocka_unit_test(test_mm_cmplt_epi32_1),
-        cmocka_unit_test(test_mm_cmplt_epi32_2),
-        cmocka_unit_test(test_mm_cmpgt_epi8),
-        cmocka_unit_test(test_mm_cmpgt_epi16),
-        cmocka_unit_test(test_mm_cmpgt_epi32_1),
-        cmocka_unit_test(test_mm_cmpgt_epi32_2)
+		cmocka_unit_test(test_mm_cmpeq_epi16),
+		cmocka_unit_test(test_mm_cmpeq_epi32_1),
+		cmocka_unit_test(test_mm_cmpeq_epi32_2),
+		cmocka_unit_test(test_mm_cmplt_epi8),
+		cmocka_unit_test(test_mm_cmplt_epi16),
+		cmocka_unit_test(test_mm_cmplt_epi32_1),
+		cmocka_unit_test(test_mm_cmplt_epi32_2),
+		cmocka_unit_test(test_mm_cmpgt_epi8),
+		cmocka_unit_test(test_mm_cmpgt_epi16),
+		cmocka_unit_test(test_mm_cmpgt_epi32_1),
+		cmocka_unit_test(test_mm_cmpgt_epi32_2)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

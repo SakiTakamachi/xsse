@@ -11,9 +11,9 @@ static void test_mm_insert_epi16(void **state)
 	(void) state;
 
 	__m128i x = _mm_setr_epi16(10, 20, 30, 40, 50, 60, 70, 80);
-    int val = -50;
+	int val = -50;
 
-    __m128i result = _mm_insert_epi16(x, val, 2);
+	__m128i result = _mm_insert_epi16(x, val, 2);
 
 	int16_t expected[8] = { 10, 20, -50, 40, 50, 60, 70, 80 };
 	int16_t actual[8];

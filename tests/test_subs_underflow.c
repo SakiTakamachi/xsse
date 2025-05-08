@@ -16,9 +16,9 @@ static void test_mm_subs_epi8_underflow(void **state)
 	__m128i result = _mm_subs_epi8(a, b);
 
 	int8_t expected[16] = {
-        INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN,
-        INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN
-    };
+		INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN,
+		INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN
+	};
 	int8_t actual[16];
 	_mm_storeu_si128((__m128i*) actual, result);
 
@@ -86,8 +86,8 @@ int main(void)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_subs_epi8_underflow),
 		cmocka_unit_test(test_mm_subs_epi16_underflow),
-        cmocka_unit_test(test_mm_subs_epu8_underflow),
-        cmocka_unit_test(test_mm_subs_epu16_underflow)
+		cmocka_unit_test(test_mm_subs_epu8_underflow),
+		cmocka_unit_test(test_mm_subs_epu16_underflow)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

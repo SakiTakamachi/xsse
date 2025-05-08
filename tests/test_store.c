@@ -21,11 +21,11 @@ static void test_mm_store_si128_signed(void **state)
 	int8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15 };
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
-    int8_t *actual = _mm_malloc(16, 16);
+	int8_t *actual = _mm_malloc(16, 16);
 #elif defined(_MSC_VER)
 	int8_t *actual = _aligned_malloc(16, 16);
 #else
-    int8_t actual[16];
+	int8_t actual[16];
 #endif
 
 	_mm_store_si128((__m128i*) actual, x);
@@ -44,11 +44,11 @@ static void test_mm_store_si128_unsigned(void **state)
 	uint8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
-    uint8_t *actual = _mm_malloc(16, 16);
+	uint8_t *actual = _mm_malloc(16, 16);
 #elif defined(_MSC_VER)
 	uint8_t *actual = _aligned_malloc(16, 16);
 #else
-    uint8_t actual[16];
+	uint8_t actual[16];
 #endif
 
 	_mm_storeu_si128((__m128i*) actual, x);
@@ -58,9 +58,9 @@ static void test_mm_store_si128_unsigned(void **state)
 	}
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
-    _mm_free(actual);
+	_mm_free(actual);
 #elif defined(_MSC_VER)
-    _aligned_free(actual);
+	_aligned_free(actual);
 #endif
 }
 
@@ -103,11 +103,11 @@ static void test_mm_stream_si128(void **state)
 	int8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15 };
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
-    int8_t *actual = _mm_malloc(16, 16);
+	int8_t *actual = _mm_malloc(16, 16);
 #elif defined(_MSC_VER)
 	int8_t *actual = _aligned_malloc(16, 16);
 #else
-    int8_t actual[16];
+	int8_t actual[16];
 #endif
 
 	_mm_stream_si128((__m128i*) actual, x);
@@ -117,9 +117,9 @@ static void test_mm_stream_si128(void **state)
 	}
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
-    _mm_free(actual);
+	_mm_free(actual);
 #elif defined(_MSC_VER)
-    _aligned_free(actual);
+	_aligned_free(actual);
 #endif
 }
 
@@ -166,9 +166,9 @@ int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_store_si128_signed),
-        cmocka_unit_test(test_mm_store_si128_unsigned),
-        cmocka_unit_test(test_mm_storeu_si128_signed),
-        cmocka_unit_test(test_mm_storeu_si128_unsigned),
+		cmocka_unit_test(test_mm_store_si128_unsigned),
+		cmocka_unit_test(test_mm_storeu_si128_signed),
+		cmocka_unit_test(test_mm_storeu_si128_unsigned),
 		cmocka_unit_test(test_mm_stream_si128),
 		cmocka_unit_test(test_mm_stream_si32),
 		cmocka_unit_test(test_mm_stream_si64),

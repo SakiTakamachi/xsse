@@ -16,9 +16,9 @@ static void test_mm_adds_epi8_underflow(void **state)
 	__m128i result = _mm_adds_epi8(a, b);
 
 	int8_t expected[16] = {
-        INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN,
-        INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN
-    };
+		INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN,
+		INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN, INT8_MIN
+	};
 	int8_t actual[16];
 	_mm_storeu_si128((__m128i*) actual, result);
 
