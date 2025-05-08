@@ -194,14 +194,14 @@ static XSSE_FORCE_INLINE __m128i _mm_sll_epi64(__m128i x, __m128i count)
 
 #define _mm_srai_epi16(x, count) (vreinterpretq_s8_s16(vshrq_n_s16(vreinterpretq_s16_s8(x), (count))))
 #define _mm_srai_epi32(x, count) (vreinterpretq_s8_s32(vshrq_n_s32(vreinterpretq_s32_s8(x), (count))))
-static inline __m128i _mm_sra_epi16(__m128i x, __m128i count)
+static XSSE_FORCE_INLINE __m128i _mm_sra_epi16(__m128i x, __m128i count)
 {
 	uint16_t shift = (uint16_t) (vgetq_lane_s64(vreinterpretq_s64_s8(count), 0) & 0xFFFF);
 	return vreinterpretq_s8_s16(
 		vshlq_s16(vreinterpretq_s16_s8(x), vdupq_n_s16(-(int16_t) shift))
 	);
 }
-static inline __m128i _mm_sra_epi32(__m128i x, __m128i count)
+static XSSE_FORCE_INLINE __m128i _mm_sra_epi32(__m128i x, __m128i count)
 {
 	uint32_t shift = (uint32_t) (vgetq_lane_s64(vreinterpretq_s64_s8(count), 0) & 0xFFFFFFFF);
 	return vreinterpretq_s8_s32(
@@ -362,7 +362,7 @@ static XSSE_FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 #define _mm_extract_epi16(x, imm) (vgetq_lane_s16(vreinterpretq_s16_s8(x), (imm)))
 #define _mm_insert_epi16(x, val, imm) (vreinterpretq_s8_s16(vsetq_lane_s16((int16_t) (val), vreinterpretq_s16_s8(x), (imm))))
 
-static inline void _mm_maskmoveu_si128(__m128i x, __m128i mask, char* dest)
+static XSSE_FORCE_INLINE void _mm_maskmoveu_si128(__m128i x, __m128i mask, char* dest)
 {
 	uint8x16_t origin = vld1q_u8((uint8_t*) dest);
 	uint8x16_t mask_bits = vandq_u8(vreinterpretq_u8_s8(mask), vdupq_n_u8(0x80));
@@ -474,15 +474,15 @@ static XSSE_FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i x, int imm)
 #define _mm_move_epi64(x) (vreinterpretq_s8_s64((int64x2_t) { vgetq_lane_s64(vreinterpretq_s64_s8(x), 0), 0 }))
 
 #define _mm_clflush(x) ((void) 0)
-static inline void _mm_mfence(void)
+static XSSE_FORCE_INLINE void _mm_mfence(void)
 {
 	__asm__ __volatile__("dsb sy" ::: "memory");
 }
-static inline void _mm_lfence(void)
+static XSSE_FORCE_INLINE void _mm_lfence(void)
 {
 	__asm__ __volatile__("dsb ld" ::: "memory");
 }
-static inline void _mm_pause(void)
+static XSSE_FORCE_INLINE void _mm_pause(void)
 {
 	__asm__ __volatile__("yield");
 }
