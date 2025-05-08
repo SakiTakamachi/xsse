@@ -149,6 +149,60 @@ static void test_mm_lddqu_si128(void **state)
 #endif
 }
 
+static void test_mm_loadu_si16(void **state)
+{
+	(void) state;
+
+#ifndef _MSC_VER
+	int16_t data[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+	__m128i result = _mm_loadu_si16((void const*) data);
+
+	int16_t expected = 1;
+	int16_t actual[8];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	assert_int_equal(actual[0], expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm_loadu_si32(void **state)
+{
+	(void) state;
+
+#ifndef _MSC_VER
+	int32_t data[8] = { 1, 2, 3, 4 };
+	__m128i result = _mm_loadu_si32((void const*) data);
+
+	int32_t expected = 1;
+	int32_t actual[4];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	assert_int_equal(actual[0], expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm_loadu_si64(void **state)
+{
+	(void) state;
+
+#ifndef _MSC_VER
+	int64_t data[2] = { 1, 2 };
+	__m128i result = _mm_loadu_si64((void const*) data);
+
+	int64_t expected = 1;
+	int64_t actual[2];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	assert_true(actual[0] == expected);
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -158,6 +212,9 @@ int main(void)
 		cmocka_unit_test(test_mm_loadu_si128_unsigned),
 		cmocka_unit_test(test_mm_loadl_epi64),
 		cmocka_unit_test(test_mm_lddqu_si128),
+		cmocka_unit_test(test_mm_loadu_si16),
+		cmocka_unit_test(test_mm_loadu_si32),
+		cmocka_unit_test(test_mm_loadu_si64)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

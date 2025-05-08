@@ -22,10 +22,23 @@ static void test_mm_setzero_si128(void **state)
 	}
 }
 
+static void test_mm_undefined_si128(void **state)
+{
+	(void) state;
+
+#ifndef _MSC_VER
+	__m128i result = _mm_undefined_si128();
+	assert_true(sizeof(result) == 16);
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(test_mm_setzero_si128)
+		cmocka_unit_test(test_mm_setzero_si128),
+		cmocka_unit_test(test_mm_undefined_si128)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
