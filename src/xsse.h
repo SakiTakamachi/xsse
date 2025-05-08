@@ -512,4 +512,120 @@ static XSSE_FORCE_INLINE void _mm_pause(void)
 
 #endif /* SSE3 */
 
+
+/*****************************************************************************
+ *                                                                           *
+ * SSSE3                                                                      *
+ *                                                                           *
+ *****************************************************************************/
+
+#if defined(__SSSE3__)
+#include <tmmintrin.h>
+#define XSSSE3
+
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define XSSSE3
+
+/*****************************************************************************
+ * Integer Arithmetic Operations                                             *
+ *****************************************************************************/
+
+#define _mm_abs_epi8(x) (vabsq_s8(x))
+#define _mm_abs_epi16(x) (vreinterpretq_s8_s16(vabsq_s16(vreinterpretq_s16_s8(x))))
+#define _mm_abs_epi32(x) (vreinterpretq_s8_s32(vabsq_s32(vreinterpretq_s32_s8(x))))
+
+#define _mm_alignr_epi8(a, b, imm) \
+	((imm) >= 32 \
+		? vdupq_n_s8(0) \
+		: ((imm) >= 16 \
+			? vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), (imm) - 16)) \
+			: vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), (imm)))) \
+	)
+
+#define _mm_hadd_epi16(a, b) (vreinterpretq_s8_u16(vpaddq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b))))
+#define _mm_hadd_epi32(a, b) (vreinterpretq_s8_u32(vpaddq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b))))
+static XSSE_FORCE_INLINE __m128i _mm_hadds_epi16(__m128i a, __m128i b)
+{
+	int16x8x2_t unzips = vuzpq_s16(vreinterpretq_s16_s8(a), vreinterpretq_s16_s8(b));
+	return vreinterpretq_s8_s16(vqaddq_s16(unzips.val[0], unzips.val[1]));
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_hsub_epi16(__m128i a, __m128i b)
+{
+	uint16x8x2_t unzips = vuzpq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b));
+	return vreinterpretq_s8_u16(vsubq_u16(unzips.val[0], unzips.val[1]));
+}
+static XSSE_FORCE_INLINE __m128i _mm_hsub_epi32(__m128i a, __m128i b)
+{
+	uint32x4x2_t unzips = vuzpq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b));
+	return vreinterpretq_s8_u32(vsubq_u32(unzips.val[0], unzips.val[1]));
+}
+static XSSE_FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i a, __m128i b)
+{
+	int16x8x2_t unzips = vuzpq_s16(vreinterpretq_s16_s8(a), vreinterpretq_s16_s8(b));
+	return vreinterpretq_s8_s16(vqsubq_s16(unzips.val[0], unzips.val[1]));
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i a, __m128i b)
+{
+	int16x8_t a_lo = vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(vreinterpretq_u8_s8(a))));
+	int16x8_t a_hi = vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(vreinterpretq_u8_s8(a))));
+	int16x8_t b_lo = vmovl_s8(vget_low_s8(b));
+	int16x8_t b_hi = vmovl_s8(vget_high_s8(b));
+
+	return vreinterpretq_s8_u16(vpaddq_u16(
+		vreinterpretq_u16_s16(vmulq_s16(a_lo, b_lo)),
+		vreinterpretq_u16_s16(vmulq_s16(a_hi, b_hi))
+	));
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_mulhrs_epi16(__m128i a, __m128i b)
+{
+	int16x8_t va = vreinterpretq_s16_s8(a);
+	int16x8_t vb = vreinterpretq_s16_s8(b);
+
+	int32x4_t lo = vshrq_n_s32(vaddq_s32(vmull_s16(vget_low_s16(va), vget_low_s16(vb)), vdupq_n_s32(0x4000)), 15);
+	int32x4_t hi = vshrq_n_s32(vaddq_s32(vmull_s16(vget_high_s16(va), vget_high_s16(vb)), vdupq_n_s32(0x4000)), 15);
+
+	return vreinterpretq_s8_s16(vcombine_s16(vqmovn_s32(lo), vqmovn_s32(hi)));
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_sign_epi8(__m128i a, __m128i b)
+{
+	int8x16_t pos_mask = vandq_s8(vreinterpretq_s8_u8(vcltq_s8(vdupq_n_s8(0), b)), vdupq_n_s8(1));
+	int8x16_t neg_mask = vreinterpretq_s8_u8(vcltq_s8(b, vdupq_n_s8(0)));
+	return vmulq_s8(a, vorrq_s8(pos_mask, neg_mask));
+}
+static XSSE_FORCE_INLINE __m128i _mm_sign_epi16(__m128i a, __m128i b)
+{
+	int16x8_t pos_mask = vandq_s16(vreinterpretq_s16_u16(vcltq_s16(vdupq_n_s16(0), vreinterpretq_s16_s8(b))), vdupq_n_s16(1));
+	int16x8_t neg_mask = vreinterpretq_s16_u16(vcltq_s16(vreinterpretq_s16_s8(b), vdupq_n_s16(0)));
+	return vreinterpretq_s8_s16(vmulq_s16(vreinterpretq_s16_s8(a), vorrq_s16(pos_mask, neg_mask)));
+}
+static XSSE_FORCE_INLINE __m128i _mm_sign_epi32(__m128i a, __m128i b)
+{
+	int32x4_t pos_mask = vandq_s32(vreinterpretq_s32_u32(vcltq_s32(vdupq_n_s32(0), vreinterpretq_s32_s8(b))), vdupq_n_s32(1));
+	int32x4_t neg_mask = vreinterpretq_s32_u32(vcltq_s32(vreinterpretq_s32_s8(b), vdupq_n_s32(0)));
+	return vreinterpretq_s8_s32(vmulq_s32(vreinterpretq_s32_s8(a), vorrq_s32(pos_mask, neg_mask)));
+}
+
+
+/*****************************************************************************
+ * Others                                                                    *
+ *****************************************************************************/
+
+static XSSE_FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
+{
+	uint8x16_t index = vreinterpretq_u8_s8(b);
+	uint8x16_t masked_index = vorrq_u8(
+		vandq_u8(index, vdupq_n_u8(0x0F)),
+		vcgeq_u8(index, vdupq_n_u8(0x80))
+	);
+	return vqtbl1q_s8(a, masked_index);
+}
+
+
+#endif /* SSE3 */
+
 #endif /* XSSE_H */

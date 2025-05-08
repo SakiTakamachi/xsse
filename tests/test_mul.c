@@ -78,13 +78,59 @@ static void test_mm_mul_epu32(void **state)
 	}
 }
 
+static void test_mm_maddubs_epi16(void **state)
+{
+	(void) state;
+
+#ifdef XSSSE3
+	__m128i a = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(1, -2, 3, -4, 5, -6, 7, -8, 9, -10, 11, -12, 13, 14, 15, 16);
+
+	__m128i result = _mm_maddubs_epi16(a, b);
+
+	int16_t expected[8] = { -30, -70, -110, -150, -190, -230, 3650, 4810 };
+	int16_t actual[8];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 8; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
+static void test_mm_mulhrs_epi16(void **state)
+{
+	(void) state;
+
+#ifdef XSSSE3
+	__m128i a = _mm_setr_epi16(5000, 20000, 32500, 5000, -5000, -20000, -32500, -5000);
+	__m128i b = _mm_setr_epi16(2, 3, -4, -5, 2, 3, -4, -5);
+
+	__m128i result = _mm_mulhrs_epi16(a, b);
+
+	int16_t expected[8] = { 0, 2, -4, -1, 0, -2, 4, 1 };
+	int16_t actual[8];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 8; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_mulhi_epi16),
 		cmocka_unit_test(test_mm_mulhi_epu16),
 		cmocka_unit_test(test_mm_mullo_epi16),
-		cmocka_unit_test(test_mm_mul_epu32)
+		cmocka_unit_test(test_mm_mul_epu32),
+		cmocka_unit_test(test_mm_maddubs_epi16),
+		cmocka_unit_test(test_mm_mulhrs_epi16)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
