@@ -128,6 +128,23 @@ static void test_mm_slli_si128(void **state)
 	}
 }
 
+static void test_mm_slli_si128_2(void **state)
+{
+	(void) state;
+
+	__m128i x = _mm_set_epi16(0x0001, 0x0002, 0x0010, 0x00F0, 0x0F00, 0xFFFF, 0x8000, 0x7FFF);
+
+	__m128i result = _mm_slli_si128(x, 16);
+
+	int16_t expected[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	int16_t actual[8];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 8; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+}
+
 static void test_mm_bslli_si128(void **state)
 {
 	(void) state;
@@ -155,6 +172,7 @@ int main(void)
 		cmocka_unit_test(test_mm_sll_epi32),
 		cmocka_unit_test(test_mm_sll_epi64),
 		cmocka_unit_test(test_mm_slli_si128),
+		cmocka_unit_test(test_mm_slli_si128_2),
 		cmocka_unit_test(test_mm_bslli_si128)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
