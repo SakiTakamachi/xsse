@@ -191,7 +191,9 @@ static XSSE_FORCE_INLINE __m128i _mm_sll_epi64(__m128i x, __m128i count)
 static XSSE_FORCE_INLINE __m128i _mm_slli_si128(__m128i x, int imm)
 {
 	switch (imm) {
-		case 0: return x;
+		case 0:;
+			int8x16_t x2 = x;
+			return x2;
 		case 1: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 15));
 		case 2: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 14));
 		case 3: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 13));
@@ -577,7 +579,9 @@ static XSSE_FORCE_INLINE void _mm_pause(void)
 static XSSE_FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
 {
 	switch (imm) {
-		case 0: return b;
+		case 0:;
+			int8x16_t b2 = b;
+			return b2;
 		case 1: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 1));
 		case 2: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 2));
 		case 3: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 3));
@@ -593,7 +597,9 @@ static XSSE_FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
 		case 13: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 13));
 		case 14: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 14));
 		case 15: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 15));
-		case 16: return a;
+		case 16:;
+			int8x16_t a2 = a;
+			return a2;
 		case 17: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 1));
 		case 18: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 2));
 		case 19: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 3));
