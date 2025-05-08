@@ -188,8 +188,28 @@ static XSSE_FORCE_INLINE __m128i _mm_sll_epi64(__m128i x, __m128i count)
 	);
 }
 
-#define _mm_slli_si128(x, imm) \
-	((imm) >= 16 ? vdupq_n_s8(0) : vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 16 - (imm))))
+static XSSE_FORCE_INLINE __m128i _mm_slli_si128(__m128i x, int imm)
+{
+	switch (imm) {
+		case 0: return x;
+		case 1: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 15));
+		case 2: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 14));
+		case 3: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 13));
+		case 4: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 12));
+		case 5: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 11));
+		case 6: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 10));
+		case 7: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 9));
+		case 8: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 8));
+		case 9: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 7));
+		case 10: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 6));
+		case 11: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 5));
+		case 12: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 4));
+		case 13: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 3));
+		case 14: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 2));
+		case 15: return vreinterpretq_s8_u8(vextq_u8(vdupq_n_u8(0), vreinterpretq_u8_s8(x), 1));
+		default: return vreinterpretq_s8_u8(vdupq_n_u8(0));
+	}
+}
 #define _mm_bslli_si128(x, imm) _mm_slli_si128(x, imm)
 
 #define _mm_srai_epi16(x, count) (vreinterpretq_s8_s16(vshrq_n_s16(vreinterpretq_s16_s8(x), (count))))
@@ -234,8 +254,28 @@ static XSSE_FORCE_INLINE __m128i _mm_srl_epi64(__m128i x, __m128i count)
 	);
 }
 
-#define _mm_srli_si128(x, imm) \
-	((imm) >= 16 ? vdupq_n_s8(0) : vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), (imm))))
+static XSSE_FORCE_INLINE __m128i _mm_srli_si128(__m128i x, int imm)
+{
+	switch (imm) {
+		case 0: return x;
+		case 1: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 1));
+		case 2: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 2));
+		case 3: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 3));
+		case 4: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 4));
+		case 5: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 5));
+		case 6: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 6));
+		case 7: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 7));
+		case 8: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 8));
+		case 9: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 9));
+		case 10: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 10));
+		case 11: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 11));
+		case 12: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 12));
+		case 13: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 13));
+		case 14: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 14));
+		case 15: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(x), vdupq_n_u8(0), 15));
+		default: return vreinterpretq_s8_u8(vdupq_n_u8(0));
+	}
+}
 #define _mm_bsrli_si128(x, imm) _mm_srli_si128(x, imm)
 
 
@@ -534,14 +574,44 @@ static XSSE_FORCE_INLINE void _mm_pause(void)
 #define _mm_abs_epi8(x) (vabsq_s8(x))
 #define _mm_abs_epi16(x) (vreinterpretq_s8_s16(vabsq_s16(vreinterpretq_s16_s8(x))))
 #define _mm_abs_epi32(x) (vreinterpretq_s8_s32(vabsq_s32(vreinterpretq_s32_s8(x))))
-
-#define _mm_alignr_epi8(a, b, imm) \
-	((imm) >= 32 \
-		? vdupq_n_s8(0) \
-		: ((imm) >= 16 \
-			? vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), (imm) - 16)) \
-			: vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), (imm)))) \
-	)
+static XSSE_FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
+{
+	switch (imm) {
+		case 0: return b;
+		case 1: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 1));
+		case 2: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 2));
+		case 3: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 3));
+		case 4: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 4));
+		case 5: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 5));
+		case 6: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 6));
+		case 7: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 7));
+		case 8: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 8));
+		case 9: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 9));
+		case 10: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 10));
+		case 11: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 11));
+		case 12: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 12));
+		case 13: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 13));
+		case 14: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 14));
+		case 15: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(b), vreinterpretq_u8_s8(a), 15));
+		case 16: return a;
+		case 17: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 1));
+		case 18: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 2));
+		case 19: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 3));
+		case 20: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 4));
+		case 21: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 5));
+		case 22: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 6));
+		case 23: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 7));
+		case 24: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 8));
+		case 25: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 9));
+		case 26: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 10));
+		case 27: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 11));
+		case 28: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 12));
+		case 29: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 13));
+		case 30: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 14));
+		case 31: return vreinterpretq_s8_u8(vextq_u8(vreinterpretq_u8_s8(a), vdupq_n_u8(0), 15));
+		default: return vdupq_n_s8(0);
+	}
+}
 
 #define _mm_hadd_epi16(a, b) (vreinterpretq_s8_u16(vpaddq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b))))
 #define _mm_hadd_epi32(a, b) (vreinterpretq_s8_u32(vpaddq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b))))
