@@ -36,6 +36,18 @@
 #  define XSSE_FORCE_INLINE inline
 #endif
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+#include <arm_neon.h>
+#include <string.h>
+typedef int8x16_t __m128i;
+#endif
+
+
+/*****************************************************************************
+ *                                                                           *
+ * SSE2                                                                      *
+ *                                                                           *
+ *****************************************************************************/
 
 #if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64)
 #include <emmintrin.h>
@@ -43,12 +55,7 @@
 
 
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>
-#include <string.h>
 #define XSSE2
-
-typedef int8x16_t __m128i;
-
 
 /*****************************************************************************
  * Load / Store                                                              *
@@ -432,6 +439,29 @@ static inline void _mm_pause(void)
 	__asm__ __volatile__("yield");
 }
 
-#endif
+#endif /* SSE2 */
+
+
+/*****************************************************************************
+ *                                                                           *
+ * SSE3                                                                      *
+ *                                                                           *
+ *****************************************************************************/
+
+#if defined(__SSE3__)
+#include <pmmintrin.h>
+#define XSSE3
+
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define XSSE3
+
+/*****************************************************************************
+ * Load / Store                                                              *
+ *****************************************************************************/
+
+#define _mm_lddqu_si128(x) _mm_load_si128(x)
+
+#endif /* SSE3 */
 
 #endif /* XSSE_H */
