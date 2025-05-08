@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.0] - 2025-05-08
+
+### Added
+- Implemented several SSE2 APIs that were previously missing.
+- Added support for SSE3 and SSSE3.
+
+### Fixed
+- Fixed build errors in certain APIs when compiling with Apple Clang.
+
+---
+
 ## [1.1.0] - 2025-05-08
 
 ### Added
