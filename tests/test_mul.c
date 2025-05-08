@@ -82,9 +82,9 @@ int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_mulhi_epi16),
-        cmocka_unit_test(test_mm_mulhi_epu16),
-        cmocka_unit_test(test_mm_mullo_epi16),
-        cmocka_unit_test(test_mm_mul_epu32)
+		cmocka_unit_test(test_mm_mulhi_epu16),
+		cmocka_unit_test(test_mm_mullo_epi16),
+		cmocka_unit_test(test_mm_mul_epu32)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

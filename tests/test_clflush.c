@@ -12,6 +12,7 @@ static void test_mm_clflush(void **state)
 
 	char *tmp[16] = { 0 };
 	_mm_clflush((void const*) tmp);
+	(void) tmp;
 	assert_true(true);
 }
 

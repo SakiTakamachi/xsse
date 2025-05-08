@@ -16,9 +16,9 @@ static void test_mm_adds_epi8_overflow(void **state)
 	__m128i result = _mm_adds_epi8(a, b);
 
 	int8_t expected[16] = {
-        INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX,
-        INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX
-    };
+		INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX,
+		INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX, INT8_MAX
+	};
 	int8_t actual[16];
 	_mm_storeu_si128((__m128i*) actual, result);
 
@@ -55,9 +55,9 @@ static void test_mm_adds_epu8_overflow(void **state)
 	__m128i result = _mm_adds_epu8(a, b);
 
 	uint8_t expected[16] = {
-        UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX,
-        UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX
-    };
+		UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX,
+		UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX
+	};
 	uint8_t actual[16];
 	_mm_storeu_si128((__m128i*) actual, result);
 
