@@ -129,6 +129,26 @@ static void test_mm_loadl_epi64(void **state)
 #endif
 }
 
+static void test_mm_lddqu_si128(void **state)
+{
+	(void) state;
+
+#ifdef XSSE3
+	uint8_t data[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
+	__m128i result = _mm_lddqu_si128((const __m128i*) data);
+
+	uint8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
+	uint8_t actual[16];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 16; i++) {
+		assert_true(actual[i] == expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -136,7 +156,8 @@ int main(void)
 		cmocka_unit_test(test_mm_load_si128_unsigned),
 		cmocka_unit_test(test_mm_loadu_si128_signed),
 		cmocka_unit_test(test_mm_loadu_si128_unsigned),
-		cmocka_unit_test(test_mm_loadl_epi64)
+		cmocka_unit_test(test_mm_loadl_epi64),
+		cmocka_unit_test(test_mm_lddqu_si128),
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
