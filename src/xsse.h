@@ -308,6 +308,13 @@ static XSSE_FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 #define _mm_extract_epi16(x, imm) (vgetq_lane_s16(vreinterpretq_s16_s8(x), (imm)))
 #define _mm_insert_epi16(x, val, imm) (vreinterpretq_s8_s16(vsetq_lane_s16((int16_t) (val), vreinterpretq_s16_s8(x), (imm))))
 
+static inline void _mm_maskmoveu_si128(__m128i x, __m128i mask, char* dest)
+{
+	uint8x16_t origin = vld1q_u8((uint8_t*) dest);
+	uint8x16_t mask_bits = vandq_u8(vreinterpretq_u8_s8(mask), vdupq_n_u8(0x80));
+	uint8x16_t mask_bytes = vsubq_u8(vdupq_n_u8(0), vshrq_n_u8(mask_bits, 7));
+	vst1q_u8((uint8_t*) dest, vbslq_u8(mask_bytes, vreinterpretq_u8_s8(x), origin));
+}
 static XSSE_FORCE_INLINE int _mm_movemask_epi8(__m128i x)
 {
 	/**
