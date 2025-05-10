@@ -60,12 +60,35 @@ static void test_mm_packus_epi16(void **state)
 	}
 }
 
+static void test_mm_packus_epi32(void **state)
+{
+	(void) state;
+
+#ifdef XSSE4_1
+	__m128i a = _mm_set_epi32(0, 100000, -4, -100000);
+	__m128i b = _mm_set_epi32(10, 200000, -40, -200000);
+
+	__m128i result = _mm_packus_epi32(a, b);
+
+	uint16_t expected[8] = { 0, 0, UINT16_MAX, 0, 0, 0, UINT16_MAX, 10 };
+	uint16_t actual[8];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 8; i++) {
+		assert_true(actual[i] == expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_mm_packs_epi16),
 		cmocka_unit_test(test_mm_packs_epi32),
-		cmocka_unit_test(test_mm_packus_epi16)
+		cmocka_unit_test(test_mm_packus_epi16),
+		cmocka_unit_test(test_mm_packus_epi32)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

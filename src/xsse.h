@@ -636,7 +636,7 @@ static XSSE_FORCE_INLINE void _mm_pause(void)
 
 /*****************************************************************************
  *                                                                           *
- * SSSE3                                                                      *
+ * SSSE3                                                                     *
  *                                                                           *
  *****************************************************************************/
 
@@ -861,6 +861,273 @@ static XSSE_FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 }
 
 
-#endif /* SSE3 */
+#endif /* SSSE3 */
+
+
+/*****************************************************************************
+ *                                                                           *
+ * SSE4.1                                                                    *
+ *                                                                           *
+ *****************************************************************************/
+
+#if defined(__SSE4_1__)
+#include <immintrin.h>
+#define XSSE4_1
+
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define XSSE4_1
+
+/*****************************************************************************
+ * Load / Store                                                              *
+ *****************************************************************************/
+
+#define _mm_stream_load_si128(x) _mm_load_si128(x)
+
+
+/*****************************************************************************
+ * Integer Arithmetic Operations                                             *
+ *****************************************************************************/
+
+#define _mm_max_epi8(a, b) (vmaxq_s8((a), (b)))
+#define _mm_max_epi32(a, b) (vreinterpretq_s8_s32(vmaxq_s32(vreinterpretq_s32_s8(a), vreinterpretq_s32_s8(b))))
+#define _mm_max_epu16(a, b) (vreinterpretq_s8_u16(vmaxq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b))))
+#define _mm_max_epu32(a, b) (vreinterpretq_s8_u32(vmaxq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b))))
+
+#define _mm_min_epi8(a, b) (vminq_s8((a), (b)))
+#define _mm_min_epi32(a, b) (vreinterpretq_s8_s32(vminq_s32(vreinterpretq_s32_s8(a), vreinterpretq_s32_s8(b))))
+#define _mm_min_epu16(a, b) (vreinterpretq_s8_u16(vminq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b))))
+#define _mm_min_epu32(a, b) (vreinterpretq_s8_u32(vminq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b))))
+
+static XSSE_FORCE_INLINE __m128i _mm_minpos_epu16(__m128i x)
+{
+	uint16x8_t x16 = vreinterpretq_u16_s8(x);
+
+	uint16x4_t lo = vget_low_u16(x16);
+	uint16x4_t hi = vget_high_u16(x16);
+	uint16x4_t min4 = vmin_u16(lo, hi);
+
+	uint16x4_t min2 = vpmin_u16(min4, min4);
+	uint16x4_t min1 = vpmin_u16(min2, min2);
+
+	uint16_t min = (uint16_t) vget_lane_u16(min1, 0);
+	uint16x8_t repeat_min = vdupq_n_u16(min);
+
+	uint16x8_t cmp = vceqq_u16(x16, repeat_min);
+	uint8x8_t narrowed_cmp = vmovn_u16(cmp);
+	uint64x1_t cmp_64 = vreinterpret_u64_u8(narrowed_cmp);
+
+	uint64_t index_mask8 = (uint64_t) vget_lane_u64(cmp_64, 0);
+
+	uint16_t index = 0;
+#if (defined(__has_builtin) && __has_builtin(__builtin_ctzll)) || defined(__GNUC__) || defined(__clang__)
+	index = (uint16_t) __builtin_ctzll(index_mask8) / 8;
+#else
+	for (int i = 0; i < 8; i++) {
+		if (index_mask8 & 1) {
+			index = (uint16_t) i;
+			break;
+		}
+		index_mask8 >>= 8;
+	}
+#endif
+	return 	vreinterpretq_s8_u16((uint16x8_t) { min, index, 0, 0, 0, 0, 0, 0 });
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
+{
+	int32x4_t a32 = vreinterpretq_s32_s8(a);
+	int32x4_t b32 = vreinterpretq_s32_s8(b);
+	int32x4_t evens = vuzp1q_s32(a32, b32);
+	int32x2_t lo = vget_low_s32(evens);
+	int32x2_t hi = vget_high_s32(evens);
+	return vreinterpretq_s8_s64(vmull_s32(lo, hi));
+}
+static XSSE_FORCE_INLINE __m128i _mm_mullo_epi32(__m128i a, __m128i b)
+{
+	int32x2_t a_lo = vget_low_s32(vreinterpretq_s32_s8(a));
+	int32x2_t a_hi = vget_high_s32(vreinterpretq_s32_s8(a));
+	int32x2_t b_lo = vget_low_s32(vreinterpretq_s32_s8(b));
+	int32x2_t b_hi = vget_high_s32(vreinterpretq_s32_s8(b));
+
+	int64x2_t mul_lo = vmull_s32(a_lo, b_lo);
+	int64x2_t mul_hi = vmull_s32(a_hi, b_hi);
+	int32x2_t lo = vmovn_s64(mul_lo);
+	int32x2_t hi = vmovn_s64(mul_hi);
+	return vreinterpretq_s8_s32(vcombine_s32(lo, hi));
+}
+
+static XSSE_FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm8)
+{
+	uint8x16_t ua = vreinterpretq_u8_s8(a);
+
+	uint8x8_t a_sliced_0_4;
+	uint8x8_t a_sliced_1_5;
+	uint8x8_t a_sliced_2_6;
+	uint8x8_t a_sliced_3_7;
+	uint8x16_t a_pre_sliced_0_4;
+	uint8x16_t a_pre_sliced_1_5;
+	uint8x16_t a_pre_sliced_2_6;
+	uint8x16_t a_pre_sliced_3_7;
+	if ((imm8 >> 2) & 1) {
+		a_pre_sliced_0_4 = vextq_u8(ua, ua, 4);
+		a_pre_sliced_1_5 = vextq_u8(ua, ua, 5);
+		a_pre_sliced_2_6 = vextq_u8(ua, ua, 6);
+		a_pre_sliced_3_7 = vextq_u8(ua, ua, 7);
+		a_sliced_0_4 = vget_low_u8(a_pre_sliced_0_4);
+	} else {
+		a_pre_sliced_1_5 = vextq_u8(ua, ua, 1);
+		a_pre_sliced_2_6 = vextq_u8(ua, ua, 2);
+		a_pre_sliced_3_7 = vextq_u8(ua, ua, 3);
+		a_sliced_0_4 = vget_low_u8(ua);
+	}
+	a_sliced_1_5 = vget_low_u8(a_pre_sliced_1_5);
+	a_sliced_2_6 = vget_low_u8(a_pre_sliced_2_6);
+	a_sliced_3_7 = vget_low_u8(a_pre_sliced_3_7);
+
+	uint32x4_t b32 = vreinterpretq_u32_s8(b);
+	uint8x8_t b_slicedx2;
+	switch (imm8 & 0x03) {
+		case 0:
+			b_slicedx2 = vreinterpret_u8_u32(vdup_n_u32(vgetq_lane_u32(b32, 0)));
+			break;
+		case 1:
+			b_slicedx2 = vreinterpret_u8_u32(vdup_n_u32(vgetq_lane_u32(b32, 1)));
+			break;
+		case 2:
+			b_slicedx2 = vreinterpret_u8_u32(vdup_n_u32(vgetq_lane_u32(b32, 2)));
+			break;
+		case 3:
+			b_slicedx2 = vreinterpret_u8_u32(vdup_n_u32(vgetq_lane_u32(b32, 3)));
+			break;
+	}
+
+	uint16x8_t abs_diffs_0_4 = vabdl_u8(a_sliced_0_4, b_slicedx2);
+	uint16x8_t abs_diffs_1_5 = vabdl_u8(a_sliced_1_5, b_slicedx2);
+	uint16x8_t abs_diffs_2_6 = vabdl_u8(a_sliced_2_6, b_slicedx2);
+	uint16x8_t abs_diffs_3_7 = vabdl_u8(a_sliced_3_7, b_slicedx2);
+
+	uint16x8_t abs_diffs_0_4_2_6 = vpaddq_u16(abs_diffs_0_4, abs_diffs_2_6);
+	uint16x8_t abs_diffs_1_5_3_7 = vpaddq_u16(abs_diffs_1_5, abs_diffs_3_7);
+
+	uint32x4_t abs_diffs_0_4_2_6x32 = vreinterpretq_u32_u16(abs_diffs_0_4_2_6);
+	uint32x4_t abs_diffs_1_5_3_7x32 = vreinterpretq_u32_u16(abs_diffs_1_5_3_7);
+	uint32x4_t abs_diffs_0_1_2_3x32 = vtrn1q_u32(abs_diffs_0_4_2_6x32, abs_diffs_1_5_3_7x32);
+	uint32x4_t abs_diffs_4_5_6_7x32 = vtrn2q_u32(abs_diffs_0_4_2_6x32, abs_diffs_1_5_3_7x32);
+
+	uint16x8_t abs_diffs_0_1_2_3 = vreinterpretq_u16_u32(abs_diffs_0_1_2_3x32);
+	uint16x8_t abs_diffs_4_5_6_7 = vreinterpretq_u16_u32(abs_diffs_4_5_6_7x32);
+
+	return vreinterpretq_s8_u16(vpaddq_u16(abs_diffs_0_1_2_3, abs_diffs_4_5_6_7));
+}
+
+
+/*****************************************************************************
+ * Comparison                                                                *
+ *****************************************************************************/
+
+#define _mm_cmpeq_epi64(a, b) (vreinterpretq_s8_u64(vceqq_s64(vreinterpretq_s64_s8(a), vreinterpretq_s64_s8(b))))
+
+
+/*****************************************************************************
+ * Convert                                                                   *
+ *****************************************************************************/
+
+#define _mm_cvtepi8_epi16(x) (vreinterpretq_s8_s16(vmovl_s8(vget_low_s8(x))))
+#define _mm_cvtepi8_epi32(x) (vreinterpretq_s8_s32(vmovl_s16(vget_low_s16(vmovl_s8(vget_low_s8(x))))))
+#define _mm_cvtepi8_epi64(x) \
+	(vreinterpretq_s8_s64(vmovl_s32(vget_low_s32(vmovl_s16(vget_low_s16(vmovl_s8(vget_low_s8(x))))))))
+#define _mm_cvtepi16_epi32(x) (vreinterpretq_s8_s32(vmovl_s16(vget_low_s16(vreinterpretq_s16_s8(x)))))
+#define _mm_cvtepi16_epi64(x) \
+	(vreinterpretq_s8_s64(vmovl_s32(vget_low_s32(vmovl_s16(vget_low_s16(vreinterpretq_s16_s8(x)))))))
+#define _mm_cvtepi32_epi64(x) (vreinterpretq_s8_s64(vmovl_s32(vget_low_s32(vreinterpretq_s32_s8(x)))))
+
+#define _mm_cvtepu8_epi16(x) (vreinterpretq_s8_u16(vmovl_u8(vget_low_u8(vreinterpretq_u8_s8(x)))))
+#define _mm_cvtepu8_epi32(x) (vreinterpretq_s8_u32(vmovl_u16(vget_low_u16(vmovl_u8(vget_low_u8(vreinterpretq_u8_s8(x)))))))
+#define _mm_cvtepu8_epi64(x) \
+	(vreinterpretq_s8_u64(vmovl_u32(vget_low_u32(vmovl_u16(vget_low_u16(vmovl_u8(vget_low_u8(vreinterpretq_u8_s8(x)))))))))
+#define _mm_cvtepu16_epi32(x) (vreinterpretq_s8_u32(vmovl_u16(vget_low_u16(vreinterpretq_u16_s8(x)))))
+#define _mm_cvtepu16_epi64(x) \
+	(vreinterpretq_s8_u64(vmovl_u32(vget_low_u32(vmovl_u16(vget_low_u16(vreinterpretq_u16_s8(x)))))))
+#define _mm_cvtepu32_epi64(x) (vreinterpretq_s8_u64(vmovl_u32(vget_low_u32(vreinterpretq_u32_s8(x)))))
+
+
+/*****************************************************************************
+ * Tests                                                                     *
+ *****************************************************************************/
+
+static XSSE_FORCE_INLINE int _mm_test_all_ones(__m128i x)
+{
+	uint64x2_t x64 = vreinterpretq_u64_s8(x);
+	return (vgetq_lane_u64(x64, 0) == ~0ULL) & (vgetq_lane_u64(x64, 1) == ~0ULL);
+}
+static XSSE_FORCE_INLINE int _mm_test_all_zeros(__m128i mask, __m128i x)
+{
+	int8x16_t masked = vandq_s8(mask, x);
+	uint64x2_t masked64 = vreinterpretq_u64_s8(masked);
+	return (vgetq_lane_u64(masked64, 0) == 0) & (vgetq_lane_u64(masked64, 1) == 0);
+}
+static XSSE_FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i x, __m128i mask)
+{
+	int8x16_t and = vandq_s8(mask, x);
+	uint64x2_t and64 = vreinterpretq_u64_s8(and);
+	int has_ones = (vgetq_lane_u64(and64, 0) | vgetq_lane_u64(and64, 1)) != 0;
+
+	int8x16_t andnot = vbicq_s8(mask, x);
+	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
+	int has_zeros = (vgetq_lane_u64(andnot64, 0) | vgetq_lane_u64(andnot64, 1)) != 0;
+
+	return has_ones & has_zeros;
+}
+static XSSE_FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
+{
+	int8x16_t andnot = vbicq_s8(b, a);
+	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
+	return (vgetq_lane_u64(andnot64, 0) == 0) & (vgetq_lane_u64(andnot64, 1) == 0);
+}
+#define _mm_testnzc_si128(a, b) _mm_test_mix_ones_zeros(a, b)
+#define _mm_testz_si128(a, b) _mm_test_all_zeros(a, b)
+
+
+/*****************************************************************************
+ * Others                                                                    *
+ *****************************************************************************/
+
+#define _mm_packus_epi32(a, b) \
+	(vreinterpretq_s8_u16(vcombine_u16(vqmovun_s32(vreinterpretq_s32_s8(a)), vqmovun_s32(vreinterpretq_s32_s8(b)))))
+
+#define _mm_extract_epi8(x, imm) (vgetq_lane_s8((x), (imm)))
+#define _mm_extract_epi32(x, imm) (vgetq_lane_s32(vreinterpretq_s32_s8(x), (imm)))
+#define _mm_extract_epi64(x, imm) (vgetq_lane_s64(vreinterpretq_s64_s8(x), (imm)))
+
+#define _mm_insert_epi8(x, val, imm) (vsetq_lane_s8((int8_t) (val), (x), (imm)))
+#define _mm_insert_epi32(x, val, imm) (vreinterpretq_s8_s32(vsetq_lane_s32((int32_t) (val), vreinterpretq_s32_s8(x), (imm))))
+#define _mm_insert_epi64(x, val, imm) (vreinterpretq_s8_s64(vsetq_lane_s64((int64_t) (val), vreinterpretq_s64_s8(x), (imm))))
+
+#define _mm_blend_epi16(a, b, imm8) \
+	(vreinterpretq_s8_s16(vbslq_s16( \
+		(uint16x8_t){ \
+			(imm8 & (1 << 0)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 1)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 2)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 3)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 4)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 5)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 6)) ? 0xFFFF : 0x0000, \
+			(imm8 & (1 << 7)) ? 0xFFFF : 0x0000 \
+		}, \
+		vreinterpretq_s16_s8(b), \
+		vreinterpretq_s16_s8(a) \
+	)))
+static XSSE_FORCE_INLINE __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i mask)
+{
+	uint8x16_t umask = vreinterpretq_u8_s8(mask);
+	uint8x16_t repeat_0x80 = vdupq_n_u8(0x80);
+	uint8x16_t mask_fill = vcgeq_u8(umask, repeat_0x80);
+	return 	vbslq_s8(mask_fill, b, a);
+}
+
+
+#endif /* SSE4_1 */
 
 #endif /* XSSE_H */
