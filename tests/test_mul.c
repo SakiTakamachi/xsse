@@ -122,6 +122,50 @@ static void test_mm_mulhrs_epi16(void **state)
 #endif
 }
 
+static void test_mm_mul_epi32(void **state)
+{
+	(void) state;
+
+#ifdef XSSE4_1
+	__m128i a = _mm_setr_epi32(1000, 2000, -3000, 4000);
+	__m128i b = _mm_setr_epi32(500, -1500, 2500, 3500);
+
+	__m128i result = _mm_mul_epi32(a, b);
+
+	int64_t expected[2] = { 500000, -7500000 };
+	int64_t actual[2];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 2; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
+static void test_mm_mullo_epi32(void **state)
+{
+	(void) state;
+	
+#ifdef XSSE4_1
+	__m128i a = _mm_setr_epi32(0x7FFFFFFF, -1, -2, 0x80000000);
+	__m128i b = _mm_setr_epi32(2, -1, 1, 2);
+
+	__m128i result = _mm_mullo_epi32(a, b);
+
+	int32_t expected[4] = { 0xFFFFFFFE, 1, -2, 0 };
+	int32_t actual[4];
+	_mm_storeu_si128((__m128i*) actual, result);
+
+	for (int i = 0; i < 4; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -130,7 +174,9 @@ int main(void)
 		cmocka_unit_test(test_mm_mullo_epi16),
 		cmocka_unit_test(test_mm_mul_epu32),
 		cmocka_unit_test(test_mm_maddubs_epi16),
-		cmocka_unit_test(test_mm_mulhrs_epi16)
+		cmocka_unit_test(test_mm_mulhrs_epi16),
+		cmocka_unit_test(test_mm_mul_epi32),
+		cmocka_unit_test(test_mm_mullo_epi32)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
