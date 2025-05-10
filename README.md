@@ -7,9 +7,9 @@ XSSE is a C header-only library consisting of macros and inline functions that a
 It supports both x86_64 (SSE2 and newer) and ARM NEON, enabling developers to write portable SIMD code without worrying about platform differences.
 Note: SSE (original) is not supported due to its age and limited adoption in modern environments.
 
-- Support for floating-point APIs that rely on __m128 or __m128d is not provided.
+- Support for floating-point APIs that rely on `__m128` or `__m128d` is not provided.
 
-- Support for legacy APIs that rely on _m64 is not provided.
+- Support for legacy APIs that rely on `_m64` is not provided.
 
 - Functions that are difficult to replicate in NEON, such as `_mm_stream_si128`, are substituted with regular store instructions.
 
