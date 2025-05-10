@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.3.0] - 2025-05-11
+
+### Added
+- Added support for SSE4.1
+
+### Changed
+- Refactored for improved ILP (Instruction-Level Parallelism) efficiency.
+
+---
+
 ## [1.2.0] - 2025-05-08
 
 ### Added

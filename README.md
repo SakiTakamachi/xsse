@@ -24,10 +24,10 @@ Recommended: C99 or later
 - SSE2
 - SSE3
 - SSSE3
+- SSE4.1
 
 #### 🚧 Planned Support
 
-- SSE4.1 (planned)
 - SSE4.2 (planned)
 
 ### ❌ Not Supported
@@ -64,10 +64,15 @@ When SSE2 or NEON is available, the `XSSE2` macro is automatically defined, enab
 XSSE also supports selected instructions from SSE3 and SSSE3. For example:
 
 ```c
+#ifdef XSSE3
+#endif
+
 #ifdef XSSSE3
-__m128i shuffled = _mm_shuffle_epi8(a, b);  /* SSSE3 instruction */
+#endif
+
+#ifdef XSSE4_1
 #endif
 ```
 
-On ARM platforms, if a macro like `XSSSE3` is defined, it guarantees that `XSSE3` and `XSSE2` are also defined.
-On x86_64, the corresponding `XSSE*` macros are defined automatically when compiler intrinsics like `__SSE2__`, `__SSE3__`, or `__SSSE3__` are available.
+On ARM platforms, if a macro like `XSSE4_1` is defined, it guarantees that `XSSSE3`, `XSSE3` and `XSSE2` are also defined.
+On x86_64, the corresponding `XSSE*` macros are defined automatically when compiler intrinsics like `__SSE2__`, `__SSE3__`, or `__SSE4_1__` are available.
