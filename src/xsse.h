@@ -1059,13 +1059,13 @@ static XSSE_FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const in
 static XSSE_FORCE_INLINE int _mm_test_all_ones(__m128i x)
 {
 	uint64x2_t x64 = vreinterpretq_u64_s8(x);
-	return (vgetq_lane_u64(x64, 0) == ~0ULL) & (vgetq_lane_u64(x64, 1) == ~0ULL);
+	return (vgetq_lane_u64(x64, 0) == ~0ULL) && (vgetq_lane_u64(x64, 1) == ~0ULL);
 }
 static XSSE_FORCE_INLINE int _mm_test_all_zeros(__m128i mask, __m128i x)
 {
 	int8x16_t masked = vandq_s8(mask, x);
 	uint64x2_t masked64 = vreinterpretq_u64_s8(masked);
-	return (vgetq_lane_u64(masked64, 0) == 0) & (vgetq_lane_u64(masked64, 1) == 0);
+	return (vgetq_lane_u64(masked64, 0) == 0) && (vgetq_lane_u64(masked64, 1) == 0);
 }
 static XSSE_FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i x, __m128i mask)
 {
@@ -1077,13 +1077,13 @@ static XSSE_FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i x, __m128i mask)
 	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
 	int has_zeros = (vgetq_lane_u64(andnot64, 0) | vgetq_lane_u64(andnot64, 1)) != 0;
 
-	return has_ones & has_zeros;
+	return has_ones && has_zeros;
 }
 static XSSE_FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
 {
 	int8x16_t andnot = vbicq_s8(b, a);
 	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
-	return (vgetq_lane_u64(andnot64, 0) == 0) & (vgetq_lane_u64(andnot64, 1) == 0);
+	return (vgetq_lane_u64(andnot64, 0) == 0) && (vgetq_lane_u64(andnot64, 1) == 0);
 }
 #define _mm_testnzc_si128(a, b) _mm_test_mix_ones_zeros(a, b)
 #define _mm_testz_si128(a, b) _mm_test_all_zeros(a, b)
