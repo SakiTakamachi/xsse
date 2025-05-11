@@ -27,7 +27,7 @@ static void test_mm_blend_epi16(void **state)
 	skip();
 #endif
 }
-#include <stdio.h>
+
 static void test_mm_blendv_epi8(void **state)
 {
 	(void) state;
@@ -44,7 +44,6 @@ static void test_mm_blendv_epi8(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
-		printf("%d ", actual[i]);
 		assert_int_equal(actual[i], expected[i]);
 	}
 #else
