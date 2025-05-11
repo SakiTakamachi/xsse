@@ -218,7 +218,7 @@ static void test_mm_stream_load_si128(void **state)
 #endif
 
 	memcpy(data, (int8_t[]){ 0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15 }, 16);
-	__m128i result = _mm_stream_load_si128((const __m128i*) data);
+	__m128i result = _mm_stream_load_si128((__m128i*) data);
 
 	int8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15 };
 	int8_t actual[16];

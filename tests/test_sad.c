@@ -30,7 +30,7 @@ static void test_mm_mpsadbw_epu8_1(void **state)
 
 #ifdef XSSE4_1
 	__m128i a = _mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, (int8_t) 130, (int8_t) 140, (int8_t) 150, (int8_t) 160);
 
 	__m128i result = _mm_mpsadbw_epu8(a, b, 0b0000);
 
@@ -52,7 +52,7 @@ static void test_mm_mpsadbw_epu8_2(void **state)
 
 #ifdef XSSE4_1
 	__m128i a = _mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, (int8_t) 130, (int8_t) 140, (int8_t) 150, (int8_t) 160);
 
 	__m128i result = _mm_mpsadbw_epu8(a, b, 0b0100);
 
@@ -74,7 +74,7 @@ static void test_mm_mpsadbw_epu8_3(void **state)
 
 #ifdef XSSE4_1
 	__m128i a = _mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, (int8_t) 130, (int8_t) 140, (int8_t) 150, (int8_t) 160);
 
 	__m128i result = _mm_mpsadbw_epu8(a, b, 0b0001);
 
@@ -96,7 +96,7 @@ static void test_mm_mpsadbw_epu8_4(void **state)
 
 #ifdef XSSE4_1
 	__m128i a = _mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, (int8_t) 130, (int8_t) 140, (int8_t) 150, (int8_t) 160);
 
 	__m128i result = _mm_mpsadbw_epu8(a, b, 0b0010);
 
@@ -118,7 +118,7 @@ static void test_mm_mpsadbw_epu8_5(void **state)
 
 #ifdef XSSE4_1
 	__m128i a = _mm_setr_epi8(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160);
+	__m128i b = _mm_setr_epi8(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, (int8_t) 130, (int8_t) 140, (int8_t) 150, (int8_t) 160);
 
 	__m128i result = _mm_mpsadbw_epu8(a, b, 0b0111);
 

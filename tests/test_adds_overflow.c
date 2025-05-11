@@ -49,7 +49,7 @@ static void test_mm_adds_epu8_overflow(void **state)
 {
 	(void) state;
 
-	__m128i a = _mm_set1_epi8(UINT8_MAX);
+	__m128i a = _mm_set1_epi8((int8_t) UINT8_MAX);
 	__m128i b = _mm_setr_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 	__m128i result = _mm_adds_epu8(a, b);
@@ -70,7 +70,7 @@ static void test_mm_adds_epu16_overflow(void **state)
 {
 	(void) state;
 
-	__m128i a = _mm_set1_epi16(UINT16_MAX);
+	__m128i a = _mm_set1_epi16((int16_t) UINT16_MAX);
 	__m128i b = _mm_setr_epi16(0, 1, 2, 3, 4, 5, 6, 7);
 
 	__m128i result = _mm_adds_epu16(a, b);

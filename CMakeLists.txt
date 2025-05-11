@@ -10,7 +10,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    link_directories("/opt/homebrew/lib")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|arm)")
+        link_directories("/opt/homebrew/lib")
+    endif()
     include_directories("/opt/homebrew/include")
 endif()
 
