@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmocka.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_subs_epi8_underflow(void **state)
 {
@@ -59,7 +53,7 @@ static void test_mm_subs_epu8_underflow(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 }
 
@@ -77,7 +71,7 @@ static void test_mm_subs_epu16_underflow(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 }
 

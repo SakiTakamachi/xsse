@@ -1,8 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmocka.h>
+#include "xsse_test.h"
 
 #if defined(_MSC_VER)
   #include <malloc.h>
@@ -63,7 +59,7 @@ static void test_mm_store_si128_unsigned(void **state)
 	_mm_storeu_si128((__m128i*) actual, x);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 
 #ifdef _MSC_VER
@@ -102,7 +98,7 @@ static void test_mm_storeu_si128_unsigned(void **state)
 	_mm_storeu_si128((__m128i*) actual, x);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 }
 
@@ -158,7 +154,7 @@ static void test_mm_stream_si64(void **state)
 	int64_t expected = 1234;
 	_mm_stream_si64((long long int*) &actual, x);
 
-	assert_true(actual == expected);
+	assert_int_equal(actual, expected);
 }
 
 static void test_mm_storel_epi64(void **state)
@@ -171,7 +167,7 @@ static void test_mm_storel_epi64(void **state)
 	int64_t actual = 0;
 	_mm_storel_epi64((__m128i*) &actual, x);
 
-	assert_true(actual == expected);
+	assert_int_equal(actual, expected);
 }
 
 static void test_mm_storeu_si16(void **state)
@@ -219,7 +215,7 @@ static void test_mm_storeu_si64(void **state)
 	int64_t actual;
 	_mm_storeu_si64((void*) &actual, x);
 
-	assert_true(actual == expected);
+	assert_int_equal(actual, expected);
 #else
 	skip();
 #endif

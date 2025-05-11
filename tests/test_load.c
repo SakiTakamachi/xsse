@@ -1,11 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <string.h>
-#include <cmocka.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_load_si128_signed(void **state)
 {
@@ -57,7 +50,7 @@ static void test_mm_load_si128_unsigned(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 
 #if defined(__SSE2__) || defined(__x86_64__) || defined(_M_X64)
@@ -95,7 +88,7 @@ static void test_mm_loadu_si128_unsigned(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 }
 
@@ -142,7 +135,7 @@ static void test_mm_lddqu_si128(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();
@@ -197,7 +190,7 @@ static void test_mm_loadu_si64(void **state)
 	int64_t actual[2];
 	_mm_storeu_si128((__m128i*) actual, result);
 
-	assert_true(actual[0] == expected);
+	assert_int_equal(actual[0], expected);
 #else
 	skip();
 #endif
