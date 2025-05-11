@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-#include <inttypes.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_extract_epi16(void **state)
 {
@@ -60,7 +54,7 @@ static void test_mm_extract_epi64(void **state)
 	int64_t expected = 0xFFFFFFFFFFFFFF00;
 	int64_t actual = _mm_extract_epi64(x, 1);
 
-	assert_true(actual == expected);
+	assert_int_equal(actual, expected);
 #else
 	skip();
 #endif

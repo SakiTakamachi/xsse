@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmocka.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_cvtsi32_si128(void **state)
 {
@@ -57,7 +51,7 @@ static void test_mm_cvtsi128_si64(void **state)
 
 	int64_t actual = _mm_cvtsi128_si64(x);
 	int64_t expected = 20000;
-	assert_true(actual == expected);
+	assert_int_equal(actual, expected);
 }
 
 int main(void)

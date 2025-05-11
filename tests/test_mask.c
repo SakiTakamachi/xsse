@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-#include <inttypes.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_movemask_epi8(void **state)
 {
@@ -34,7 +28,7 @@ static void test_mm_maskmoveu_si128(void **state)
 	char *actual = dest;
 
 	for (int i = 0; i < 16; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_int_equal((int8_t) actual[i], (int8_t) expected[i]);
 	}
 }
 

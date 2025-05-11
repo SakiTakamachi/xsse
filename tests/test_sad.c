@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmocka.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_sad_epu8(void **state)
 {
@@ -20,7 +14,7 @@ static void test_mm_sad_epu8(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 }
 
@@ -39,7 +33,7 @@ static void test_mm_mpsadbw_epu8_1(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();
@@ -61,7 +55,7 @@ static void test_mm_mpsadbw_epu8_2(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();
@@ -83,7 +77,7 @@ static void test_mm_mpsadbw_epu8_3(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();
@@ -105,7 +99,7 @@ static void test_mm_mpsadbw_epu8_4(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();
@@ -127,7 +121,7 @@ static void test_mm_mpsadbw_epu8_5(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 8; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_uint_equal(actual[i], expected[i]);
 	}
 #else
 	skip();

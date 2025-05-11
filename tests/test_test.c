@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-#include <inttypes.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_test_all_ones_true(void **state)
 {

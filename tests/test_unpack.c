@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-#include <inttypes.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_unpackhi_epi8(void **state)
 {
@@ -74,7 +68,7 @@ static void test_mm_unpackhi_epi64(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_int_equal(actual[i], expected[i]);
 	}
 }
 
@@ -146,7 +140,7 @@ static void test_mm_unpacklo_epi64(void **state)
 	_mm_storeu_si128((__m128i*) actual, result);
 
 	for (int i = 0; i < 2; i++) {
-		assert_true(actual[i] == expected[i]);
+		assert_int_equal(actual[i], expected[i]);
 	}
 }
 

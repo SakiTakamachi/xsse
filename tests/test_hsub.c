@@ -1,10 +1,4 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <inttypes.h>
-#include <cmocka.h>
-
-#include "../src/xsse.h"
+#include "xsse_test.h"
 
 static void test_mm_hsub_epi16(void **state)
 {
