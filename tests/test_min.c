@@ -10,12 +10,12 @@ static void test_mm_min_epu8(void **state)
 {
 	(void) state;
 
-	__m128i a = _mm_setr_epi8(50, 100, 50, 100, 50, 100, 50, 200, 50, 100, 50, 100, 50, 100, 50, 200);
-	__m128i b = _mm_setr_epi8(100, 50, 100, 50, 100, 50, 200, 50, 100, 50, 100, 50, 100, 50, 50, 200);
+	__m128i a = _mm_setr_epi8(50, 100, 50, 100, 50, 100, 50, (int8_t) 200, 50, 100, 50, 100, 50, 100, 50, (int8_t) 200);
+	__m128i b = _mm_setr_epi8(100, 50, 100, 50, 100, 50, (int8_t) 200, 50, 100, 50, 100, 50, 100, 50, 50, (int8_t) 200);
 
 	__m128i result = _mm_min_epu8(a, b);
 
-	uint8_t expected[16] = { 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 200 };
+	uint8_t expected[16] = { 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, (int8_t) 200 };
 	uint8_t actual[16];
 	_mm_storeu_si128((__m128i*) actual, result);
 
@@ -91,12 +91,12 @@ static void test_mm_min_epu16(void **state)
 	(void) state;
 
 #ifdef XSSE4_1
-	__m128i a = _mm_setr_epi16(50, 100, 50, 100, 50, 100, 50, 200);
-	__m128i b = _mm_setr_epi16(100, 50, 100, 50, 100, 50, 200, 200);
+	__m128i a = _mm_setr_epi16(50, 100, 50, 100, 50, 100, 50, (int8_t) 200);
+	__m128i b = _mm_setr_epi16(100, 50, 100, 50, 100, 50, (int8_t) 200, (int8_t) 200);
 
 	__m128i result = _mm_min_epu16(a, b);
 
-	uint16_t expected[8] = { 50, 50, 50, 50, 50, 50, 50, 200 };
+	uint16_t expected[8] = { 50, 50, 50, 50, 50, 50, 50, (int8_t) 200 };
 	uint16_t actual[8];
 	_mm_storeu_si128((__m128i*) actual, result);
 
@@ -113,12 +113,12 @@ static void test_mm_min_epu32(void **state)
 	(void) state;
 
 #ifdef XSSE4_1
-	__m128i a = _mm_setr_epi32(50, 100, 50, 200);
-	__m128i b = _mm_setr_epi32(100, 50, 200, 200);
+	__m128i a = _mm_setr_epi32(50, 100, 50, (int8_t) 200);
+	__m128i b = _mm_setr_epi32(100, 50, (int8_t) 200, (int8_t) 200);
 
 	__m128i result = _mm_min_epu32(a, b);
 
-	uint32_t expected[4] = { 50, 50, 50, 200 };
+	uint32_t expected[4] = { 50, 50, 50, (int8_t) 200 };
 	uint32_t actual[4];
 	_mm_storeu_si128((__m128i*) actual, result);
 
@@ -135,7 +135,7 @@ static void test_mm_minpos_epu16(void **state)
 	(void) state;
 
 #ifdef XSSE4_1
-	__m128i x = _mm_setr_epi16(50, 100, 50, 200, 20, 50, 50, 200);
+	__m128i x = _mm_setr_epi16(50, 100, 50, (int8_t) 200, 20, 50, 50, (int8_t) 200);
 
 	__m128i result = _mm_minpos_epu16(x);
 

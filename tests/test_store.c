@@ -45,7 +45,10 @@ static void test_mm_store_si128_unsigned(void **state)
 {
 	(void) state;
 
-	__m128i x = _mm_setr_epi8(0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135);
+	__m128i x = _mm_setr_epi8(
+		0, 1, 2, 3, 4, 5, 6, 7,
+		(int8_t) 128, (int8_t) 129, (int8_t) 130, (int8_t) 131, (int8_t) 132, (int8_t) 133, (int8_t) 134, (int8_t) 135
+	);
 
 	uint8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
 
@@ -89,7 +92,10 @@ static void test_mm_storeu_si128_unsigned(void **state)
 {
 	(void) state;
 
-	__m128i x = _mm_setr_epi8(0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135);
+	__m128i x = _mm_setr_epi8(
+		0, 1, 2, 3, 4, 5, 6, 7,
+		(int8_t) 128, (int8_t) 129, (int8_t) 130, (int8_t) 131, (int8_t) 132, (int8_t) 133, (int8_t) 134, (int8_t) 135
+	);
 
 	uint8_t expected[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 128, 129, 130, 131, 132, 133, 134, 135 };
 	uint8_t actual[16];
