@@ -21,23 +21,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [x64, arm]
         include:
           - arch: x64
             runner: ubuntu-latest
+            crc32: x64-crc32
           - arch: arm
             runner: ubuntu-24.04-arm
+            crc32: arm-crc32
+          - arch: arm
+            runner: ubuntu-24.04-arm
+            crc32: no-crc32
 
     uses: ./.github/workflows/ubuntu.yml
     with:
       runner: ${{ matrix.runner }}
+      crc32: ${{ matrix.crc32 }}
 
   MacOS:
     name: Tests on MacOS 64-bit
     strategy:
       fail-fast: false
       matrix:
-        arch: [x64, arm]
         include:
           - arch: x64
             runner: macos-13
@@ -53,7 +57,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [x64]
         include:
           - arch: x64
             runner: windows-latest

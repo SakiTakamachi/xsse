@@ -29,11 +29,32 @@
 
 #ifdef _MSC_VER
 #  define XSSE_FORCE_INLINE __forceinline
+#  define XSSE_UNREACHABLE() __assume(0)
+#  define XSSE_EXPECTED(x) (x)
+#  define XSSE_UNEXPECTED(x) (x)
+#  define XSSE_ATTR_CONST
+#  define XSSE_IS_CONSTANT(x) 1
+#  define XSSE_ATTR_OPTIMIZE_O2
 #elif defined(__GNUC__) || defined(__clang__)
 #  define XSSE_FORCE_INLINE inline __attribute__((always_inline))
+#  define XSSE_UNREACHABLE() __builtin_unreachable()
+#  define XSSE_EXPECTED(x) __builtin_expect(!!(x), 1)
+#  define XSSE_UNEXPECTED(x) __builtin_expect(!!(x), 0)
+#  define XSSE_ATTR_CONST __attribute__((const))
+#  define XSSE_IS_CONSTANT(x) __builtin_constant_p(x)
 #  define XSSE_HAS_MACRO_EXTENSION
+#  ifdef __OPTIMIZE__
+#    define XSSE_IS_OPTIMIZE 
+#  endif
+#  define XSSE_ATTR_OPTIMIZE_O2 __attribute__((optimize("O2")))
 #else
 #  define XSSE_FORCE_INLINE inline
+#  define XSSE_UNREACHABLE() do {} while (0)
+#  define XSSE_EXPECTED(x) (x)
+#  define XSSE_UNEXPECTED(x) (x)
+#  define XSSE_ATTR_CONST
+#  define XSSE_IS_CONSTANT(x) 1
+#  define XSSE_ATTR_OPTIMIZE_O2
 #endif
 
 #if defined(__aarch64__) || defined(_M_ARM64)
@@ -860,7 +881,6 @@ static XSSE_FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 	return vqtbl1q_s8(a, masked_index);
 }
 
-
 #endif /* SSSE3 */
 
 
@@ -871,7 +891,7 @@ static XSSE_FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
  *****************************************************************************/
 
 #if defined(__SSE4_1__)
-#include <immintrin.h>
+#include <smmintrin.h>
 #define XSSE4_1
 
 
@@ -1127,7 +1147,779 @@ static XSSE_FORCE_INLINE __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i m
 	return 	vbslq_s8(mask_fill, b, a);
 }
 
-
 #endif /* SSE4_1 */
+
+
+/*****************************************************************************
+ *                                                                           *
+ * SSE4.2                                                                    *
+ *                                                                           *
+ *****************************************************************************/
+
+#if defined(__SSE4_2__)
+#include <nmmintrin.h>
+#define XSSE4_2
+
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define XSSE4_2
+
+/*****************************************************************************
+ * Comparison                                                                *
+ *****************************************************************************/
+
+#define _mm_cmpgt_epi64(a, b) (vreinterpretq_s8_u64(vcgtq_s64(vreinterpretq_s64_s8(a), vreinterpretq_s64_s8(b))))
+
+
+/*****************************************************************************
+ * Packed Compare                                                            *
+ *****************************************************************************/
+
+/* [1:0]*/
+#define _SIDD_UBYTE_OPS                0x00
+#define _SIDD_UWORD_OPS                0x01
+#define _SIDD_SBYTE_OPS                0x02
+#define _SIDD_SWORD_OPS                0x03
+
+/* [3:2] */
+#define _SIDD_CMP_EQUAL_ANY            0x00
+#define _SIDD_CMP_RANGES               0x04
+#define _SIDD_CMP_EQUAL_EACH           0x08
+#define _SIDD_CMP_EQUAL_ORDERED        0x0C
+
+/* [5:4] */
+#define _SIDD_POSITIVE_POLARITY        0x00
+#define _SIDD_NEGATIVE_POLARITY        0x10
+#define _SIDD_MASKED_POSITIVE_POLARITY 0x20
+#define _SIDD_MASKED_NEGATIVE_POLARITY 0x30
+
+/* [6] */
+#define _SIDD_LEAST_SIGNIFICANT        0x00
+#define _SIDD_MOST_SIGNIFICANT         0x40
+
+/* [6] */
+#define _SIDD_BIT_MASK                 0x00
+#define _SIDD_UNIT_MASK                0x40
+
+typedef struct {
+	int8_t cf;
+	int8_t zf;
+	int8_t sf;
+	uint8x16_t mask;
+} _xsse_pcmp_result_t;
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _xsse_seach_most_significant_byte_index(uint64_t mask)
+{
+#if (defined(__has_builtin) && __has_builtin(__builtin_clzll)) || defined(__GNUC__) || defined(__clang__)
+	return (int) 7 - (__builtin_clzll(mask) / 8);
+#else
+	for (int i = 0; i < 8; ++i) {
+		uint8_t byte = (mask >> ((7 - i) * 8)) & 0xFF;
+		if (byte != 0) {
+			return 7 - i;
+		}
+	}
+	XSSE_UNREACHABLE();
+#endif
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _xsse_seach_least_significant_byte_index(uint64_t mask)
+{
+#if (defined(__has_builtin) && __has_builtin(__builtin_ctzll)) || defined(__GNUC__) || defined(__clang__)
+	return (int) __builtin_ctzll(mask) / 8;
+#else
+	for (int i = 0; i < 8; i++) {
+		if (mask & 0xFF) {
+			return i;
+		}
+		mask >>= 8;
+	}
+	XSSE_UNREACHABLE();
+#endif
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _xsse_seach_most_significant_word_index(uint64_t mask)
+{
+#if (defined(__has_builtin) && __has_builtin(__builtin_clzll)) || defined(__GNUC__) || defined(__clang__)
+	return (int) 3 - (__builtin_clzll(mask) / 16);
+#else
+	for (int i = 0; i < 4; ++i) {
+		uint16_t byte = (mask >> ((3 - i) * 16)) & 0xFFFF;
+		if (byte != 0) {
+			return 3 - i;
+		}
+	}
+	XSSE_UNREACHABLE();
+#endif
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _xsse_seach_least_significant_word_index(uint64_t mask)
+{
+#if (defined(__has_builtin) && __has_builtin(__builtin_ctzll)) || defined(__GNUC__) || defined(__clang__)
+	return (int) __builtin_ctzll(mask) / 16;
+#else
+	for (int i = 0; i < 4; i++) {
+		if (mask & 0xFFFF) {
+			return i;
+		}
+		mask >>= 16;
+	}
+	XSSE_UNREACHABLE();
+#endif
+}
+
+#ifndef XSSE_IS_OPTIMIZE
+XSSE_ATTR_OPTIMIZE_O2
+#endif
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	if (imm8 & 0x01) {
+		/* word */
+#define XSSE_PCMP_ANY_WORD(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) ? vceqq_s16(vdupq_n_s16(vgetq_lane_s16(a16, l)), b16) : vceqq_u16(vdupq_n_u16(vgetq_lane_u16(ua16, l)), ub16)
+#define XSSE_PCMP_RANGES_WORD(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) \
+		? vandq_u16(vcleq_s16(vdupq_n_s16(vgetq_lane_s16(a16, (l))), b16), vcleq_s16(b16, vdupq_n_s16(vgetq_lane_s16(a16, (l + 1))))) \
+		: vandq_u16(vcleq_u16(vdupq_n_u16(vgetq_lane_u16(ua16, (l))), ub16), vcleq_u16(ub16, vdupq_n_u16(vgetq_lane_u16(ua16, (l + 1)))))
+#define XSSE_PCMP_EACH_WORD() cmp_ret = (imm8 & 0x02) ? vceqq_s16(a16, b16) : vceqq_u16(ua16, ub16)
+#define XSSE_PCMP_ORDERED_WORD(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) \
+		? vextq_u16(vbicq_u16(vceqq_s16(vdupq_n_s16(vgetq_lane_s16(a16, l)), b16), b_invalid_mask), repeat_full_bits, l) \
+		: vextq_u16(vbicq_u16(vceqq_u16(vdupq_n_u16(vgetq_lane_u16(ua16, l)), ub16), b_invalid_mask), repeat_full_bits, l)
+
+#define XSSE_VORR_U16(a, b) tmp_cmp_##a = vorrq_u16(tmp_cmp_##a, tmp_cmp_##b);
+#define XSSE_VAND_U16(a, b) tmp_cmp_##a = vandq_u16(tmp_cmp_##a, tmp_cmp_##b);
+
+		uint16x8_t cmp_ret;
+		uint16x8_t lanes = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		uint16x8_t a_threshold = vdupq_n_u16(la);
+		uint16x8_t b_threshold = vdupq_n_u16(lb);
+		uint16x8_t a_invalid_mask = vcgeq_u16(lanes, a_threshold);
+		uint16x8_t b_invalid_mask = vcgeq_u16(lanes, b_threshold);
+
+		int16x8_t a16, b16;
+		uint16x8_t ua16, ub16;
+		if (imm8 & 0x02) {
+			a16 = vreinterpretq_s16_s8(a);
+			b16 = vreinterpretq_s16_s8(b);
+		} else {
+			ua16 = vreinterpretq_u16_s8(a);
+			ub16 = vreinterpretq_u16_s8(b);
+		}
+
+		/* mode */
+		switch ((imm8 >> 2) & 0x03) {
+			case _SIDD_CMP_EQUAL_ANY >> 2:
+				{
+					cmp_ret = vdupq_n_u16(0);
+					if (la >= 8) {
+						uint16x8_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+						XSSE_PCMP_ANY_WORD(0, 0); XSSE_PCMP_ANY_WORD(1, 1); XSSE_PCMP_ANY_WORD(2, 2); XSSE_PCMP_ANY_WORD(3, 3);
+						XSSE_PCMP_ANY_WORD(4, 4); XSSE_PCMP_ANY_WORD(5, 5); XSSE_PCMP_ANY_WORD(6, 6); XSSE_PCMP_ANY_WORD(7, 7);
+
+						XSSE_VORR_U16(0, 1); XSSE_VORR_U16(2, 3); XSSE_VORR_U16(4, 5); XSSE_VORR_U16(6, 7);
+						XSSE_VORR_U16(0, 2); XSSE_VORR_U16(4, 6); XSSE_VORR_U16(0, 4);
+						cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 4) {
+							uint16x8_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+							XSSE_PCMP_ANY_WORD(0, 0); XSSE_PCMP_ANY_WORD(1, 1); XSSE_PCMP_ANY_WORD(2, 2); XSSE_PCMP_ANY_WORD(3, 3);
+							XSSE_VORR_U16(0, 1); XSSE_VORR_U16(2, 3); XSSE_VORR_U16(0, 2);
+							cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+							checked = 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint16x8_t tmp_cmp_0, tmp_cmp_1;
+							if (checked == 4) {
+								XSSE_PCMP_ANY_WORD(0, 4); XSSE_PCMP_ANY_WORD(1, 5);
+							} else {
+								XSSE_PCMP_ANY_WORD(0, 0); XSSE_PCMP_ANY_WORD(1, 1);
+							}
+							XSSE_VORR_U16(0, 1);
+							cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+							checked += 2;
+							la2 -= 2;
+						}
+						if (la2 >= 1) {
+							uint16x8_t tmp_cmp_0;
+							switch (checked) {
+								case 6: XSSE_PCMP_ANY_WORD(0, 6); break;
+								case 4: XSSE_PCMP_ANY_WORD(0, 4); break;
+								case 2: XSSE_PCMP_ANY_WORD(0, 2); break;
+								case 0: XSSE_PCMP_ANY_WORD(0, 0); break;
+								default: XSSE_UNREACHABLE();
+							}
+							cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+						}
+					}
+					cmp_ret = vbicq_u16(cmp_ret, b_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_RANGES >> 2:
+				{
+					cmp_ret = vdupq_n_u16(0);
+					if (la >= 8) {
+						uint16x8_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+						XSSE_PCMP_RANGES_WORD(0, 0); XSSE_PCMP_RANGES_WORD(1, 2); XSSE_PCMP_RANGES_WORD(2, 4); XSSE_PCMP_RANGES_WORD(3, 6);
+						XSSE_VORR_U16(0, 1); XSSE_VORR_U16(2, 3); XSSE_VORR_U16(0, 2);
+						cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 4) {
+							uint16x8_t tmp_cmp_0, tmp_cmp_1;
+							XSSE_PCMP_RANGES_WORD(0, 0); XSSE_PCMP_RANGES_WORD(1, 2);
+							XSSE_VORR_U16(0, 1);
+							cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+							checked = 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint16x8_t tmp_cmp_0;
+							if (checked == 4) {
+								XSSE_PCMP_RANGES_WORD(0, 4);
+							} else {
+								XSSE_PCMP_RANGES_WORD(0, 0);
+							}
+							cmp_ret = vorrq_u16(cmp_ret, tmp_cmp_0);
+						}
+					}
+					cmp_ret = vbicq_u16(cmp_ret, b_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_EQUAL_EACH >> 2:
+				{
+					uint16x8_t and_invalid_mask = vandq_u16(a_invalid_mask, b_invalid_mask);
+					uint16x8_t xor_invalid_mask = veorq_u16(a_invalid_mask, b_invalid_mask);
+					XSSE_PCMP_EACH_WORD();
+					cmp_ret = vorrq_u16(cmp_ret, and_invalid_mask);
+					cmp_ret = vbicq_u16(cmp_ret, xor_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_EQUAL_ORDERED >> 2:
+				{
+					cmp_ret = vdupq_n_u16(0xFFFF);
+					uint16x8_t repeat_full_bits = vdupq_n_u16(0xFFFF);
+					if (la >= 8) {
+						uint16x8_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+						XSSE_PCMP_ORDERED_WORD(0, 0); XSSE_PCMP_ORDERED_WORD(1, 1); XSSE_PCMP_ORDERED_WORD(2, 2); XSSE_PCMP_ORDERED_WORD(3, 3);
+						XSSE_PCMP_ORDERED_WORD(4, 4); XSSE_PCMP_ORDERED_WORD(5, 5); XSSE_PCMP_ORDERED_WORD(6, 6); XSSE_PCMP_ORDERED_WORD(7, 7);
+
+						XSSE_VAND_U16(0, 1); XSSE_VAND_U16(2, 3); XSSE_VAND_U16(4, 5); XSSE_VAND_U16(6, 7);
+						XSSE_VAND_U16(0, 2); XSSE_VAND_U16(4, 6); XSSE_VAND_U16(0, 4);
+						cmp_ret = vandq_u16(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 4) {
+							uint16x8_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+							XSSE_PCMP_ORDERED_WORD(0, 0); XSSE_PCMP_ORDERED_WORD(1, 1); XSSE_PCMP_ORDERED_WORD(2, 2); XSSE_PCMP_ORDERED_WORD(3, 3);
+							XSSE_VAND_U16(0, 1); XSSE_VAND_U16(2, 3); XSSE_VAND_U16(0, 2);
+							cmp_ret = vandq_u16(cmp_ret, tmp_cmp_0);
+							checked = 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint16x8_t tmp_cmp_0, tmp_cmp_1;
+							if (checked == 4) {
+								XSSE_PCMP_ORDERED_WORD(0, 4); XSSE_PCMP_ORDERED_WORD(1, 5);
+							} else {
+								XSSE_PCMP_ORDERED_WORD(0, 0); XSSE_PCMP_ORDERED_WORD(1, 1);
+							}
+							XSSE_VAND_U16(0, 1);
+							cmp_ret = vandq_u16(cmp_ret, tmp_cmp_0);
+							checked += 2;
+							la2 -= 2;
+						}
+						if (la2 >= 1) {
+							uint16x8_t tmp_cmp_0;
+							switch (checked) {
+								case 6: XSSE_PCMP_ORDERED_WORD(0, 6); break;
+								case 4: XSSE_PCMP_ORDERED_WORD(0, 4); break;
+								case 2: XSSE_PCMP_ORDERED_WORD(0, 2); break;
+								case 0: XSSE_PCMP_ORDERED_WORD(0, 0); break;
+								default: XSSE_UNREACHABLE();
+							}
+							cmp_ret = vandq_u16(cmp_ret, tmp_cmp_0);
+						}
+					}
+				}
+				break;
+		}
+
+		/* negate */
+		if (imm8 & _SIDD_NEGATIVE_POLARITY) {
+			uint16x8_t not_cmp_ret = vmvnq_u16(cmp_ret);
+			if (imm8 & _SIDD_MASKED_NEGATIVE_POLARITY) {
+				cmp_ret = vbslq_u16(cmp_ret, not_cmp_ret, b_invalid_mask);
+			} else {
+				cmp_ret = not_cmp_ret;
+			}
+		}
+
+		uint64x2_t cmp_ret_64 = vreinterpretq_u64_u16(cmp_ret);
+
+		_xsse_pcmp_result_t result;
+		result.cf = (vgetq_lane_u64(cmp_ret_64, 0) | vgetq_lane_u64(cmp_ret_64, 1)) != 0;
+		result.zf = lb < 8;
+		result.sf = la < 8;
+		result.mask = vreinterpretq_u8_u16(cmp_ret);
+		return result;
+
+#undef XSSE_VAND_U16
+#undef XSSE_VORR_U16
+#undef XSSE_PCMP_ORDERED_WORD
+#undef XSSE_PCMP_EACH_WORD
+#undef XSSE_PCMP_ANY_WORD
+#undef XSSE_VORR_U16
+#undef XSSE_VAND_U16
+	} else {
+		/* byte */
+#define XSSE_PCMP_ANY_BYTE(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) ? vceqq_s8(vdupq_n_s8(vgetq_lane_s8(a, l)), b) : vceqq_u8(vdupq_n_u8(vgetq_lane_u8(ua, l)), ub)
+#define XSSE_PCMP_RANGES_BYTE(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) \
+		? vandq_u8(vcleq_s8(vdupq_n_s8(vgetq_lane_s8(a, (l))), b), vcleq_s8(b, vdupq_n_s8(vgetq_lane_s8(a, (l + 1))))) \
+		: vandq_u8(vcleq_u8(vdupq_n_u8(vgetq_lane_u8(ua, (l))), ub), vcleq_u8(ub, vdupq_n_u8(vgetq_lane_u8(ua, (l + 1)))))
+#define XSSE_PCMP_EACH_BYTE() cmp_ret = (imm8 & 0x02) ? vceqq_s8(a, b) : vceqq_u8(ua, ub)
+#define XSSE_PCMP_ORDERED_BYTE(i, l) \
+	tmp_cmp_##i = (imm8 & 0x02) \
+		? vextq_u8(vbicq_u8(vceqq_s8(vdupq_n_s8(vgetq_lane_s8(a, l)), b), b_invalid_mask), repeat_full_bits, l) \
+		: vextq_u8(vbicq_u8(vceqq_u8(vdupq_n_u8(vgetq_lane_u8(ua, l)), ub), b_invalid_mask), repeat_full_bits, l)
+
+#define XSSE_VORR_U8(a, b) tmp_cmp_##a = vorrq_u8(tmp_cmp_##a, tmp_cmp_##b);
+#define XSSE_VAND_U8(a, b) tmp_cmp_##a = vandq_u8(tmp_cmp_##a, tmp_cmp_##b);
+
+		uint8x16_t cmp_ret;
+		uint8x16_t lanes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+		uint8x16_t a_threshold = vdupq_n_u8(la);
+		uint8x16_t b_threshold = vdupq_n_u8(lb);
+		uint8x16_t a_invalid_mask = vcgeq_u8(lanes, a_threshold);
+		uint8x16_t b_invalid_mask = vcgeq_u8(lanes, b_threshold);
+
+		uint8x16_t ua, ub;
+		if ((imm8 & 0x02) == 0) {
+			ua = vreinterpretq_u8_s8(a);
+			ub = vreinterpretq_u8_s8(b);
+		}
+
+		/* mode */
+		switch ((imm8 >> 2) & 0x03) {
+			case _SIDD_CMP_EQUAL_ANY >> 2:
+				{
+					cmp_ret = vdupq_n_u8(0);
+					if (la >= 16) {
+						uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+						uint8x16_t tmp_cmp_8, tmp_cmp_9, tmp_cmp_10, tmp_cmp_11, tmp_cmp_12, tmp_cmp_13, tmp_cmp_14, tmp_cmp_15;
+						XSSE_PCMP_ANY_BYTE(0, 0); XSSE_PCMP_ANY_BYTE(1, 1); XSSE_PCMP_ANY_BYTE(2, 2); XSSE_PCMP_ANY_BYTE(3, 3);
+						XSSE_PCMP_ANY_BYTE(4, 4); XSSE_PCMP_ANY_BYTE(5, 5); XSSE_PCMP_ANY_BYTE(6, 6); XSSE_PCMP_ANY_BYTE(7, 7);
+						XSSE_PCMP_ANY_BYTE(8, 8); XSSE_PCMP_ANY_BYTE(9, 9); XSSE_PCMP_ANY_BYTE(10, 10); XSSE_PCMP_ANY_BYTE(11, 11);
+						XSSE_PCMP_ANY_BYTE(12, 12); XSSE_PCMP_ANY_BYTE(13, 13); XSSE_PCMP_ANY_BYTE(14, 14); XSSE_PCMP_ANY_BYTE(15, 15);
+
+						XSSE_VORR_U8(0, 1); XSSE_VORR_U8(2, 3); XSSE_VORR_U8(4, 5); XSSE_VORR_U8(6, 7);
+						XSSE_VORR_U8(8, 9); XSSE_VORR_U8(10, 11); XSSE_VORR_U8(12, 13); XSSE_VORR_U8(14, 15);
+						XSSE_VORR_U8(0, 2); XSSE_VORR_U8(4, 6); XSSE_VORR_U8(8, 10); XSSE_VORR_U8(12, 14);
+						XSSE_VORR_U8(0, 4); XSSE_VORR_U8(8, 12); XSSE_VORR_U8(0, 8);
+						cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 8) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+							XSSE_PCMP_ANY_BYTE(0, 0); XSSE_PCMP_ANY_BYTE(1, 1); XSSE_PCMP_ANY_BYTE(2, 2); XSSE_PCMP_ANY_BYTE(3, 3);
+							XSSE_PCMP_ANY_BYTE(4, 4); XSSE_PCMP_ANY_BYTE(5, 5); XSSE_PCMP_ANY_BYTE(6, 6); XSSE_PCMP_ANY_BYTE(7, 7);
+
+							XSSE_VORR_U8(0, 1); XSSE_VORR_U8(2, 3); XSSE_VORR_U8(4, 5); XSSE_VORR_U8(6, 7);
+							XSSE_VORR_U8(0, 2); XSSE_VORR_U8(4, 6); XSSE_VORR_U8(0, 4);
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+							checked = 8;
+							la2 -= 8;
+						}
+						if (la2 >= 4) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+							if (checked == 8) {
+								XSSE_PCMP_ANY_BYTE(0, 8); XSSE_PCMP_ANY_BYTE(1, 9); XSSE_PCMP_ANY_BYTE(2, 10); XSSE_PCMP_ANY_BYTE(3, 11);
+							} else {
+								XSSE_PCMP_ANY_BYTE(0, 0); XSSE_PCMP_ANY_BYTE(1, 1); XSSE_PCMP_ANY_BYTE(2, 2); XSSE_PCMP_ANY_BYTE(3, 3);
+							}
+							XSSE_VORR_U8(0, 1); XSSE_VORR_U8(2, 3); XSSE_VORR_U8(0, 2);
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+							checked += 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1;
+							switch (checked) {
+								case 12: XSSE_PCMP_ANY_BYTE(0, 12); XSSE_PCMP_ANY_BYTE(1, 13); break;
+								case 8: XSSE_PCMP_ANY_BYTE(0, 8); XSSE_PCMP_ANY_BYTE(1, 9); break;
+								case 4: XSSE_PCMP_ANY_BYTE(0, 4); XSSE_PCMP_ANY_BYTE(1, 5); break;
+								case 0: XSSE_PCMP_ANY_BYTE(0, 0); XSSE_PCMP_ANY_BYTE(1, 1); break;
+								default: XSSE_UNREACHABLE();
+							}
+							XSSE_VORR_U8(0, 1);
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+							checked += 2;
+							la2 -= 2;
+						}
+						if (la2 == 1) {
+							uint8x16_t tmp_cmp_0;
+							switch (checked) {
+								case 14: XSSE_PCMP_ANY_BYTE(0, 14); break;
+								case 12: XSSE_PCMP_ANY_BYTE(0, 12); break;
+								case 10: XSSE_PCMP_ANY_BYTE(0, 10); break;
+								case 8: XSSE_PCMP_ANY_BYTE(0, 8); break;
+								case 6: XSSE_PCMP_ANY_BYTE(0, 6); break;
+								case 4: XSSE_PCMP_ANY_BYTE(0, 4); break;
+								case 2: XSSE_PCMP_ANY_BYTE(0, 2); break;
+								case 0: XSSE_PCMP_ANY_BYTE(0, 0); break;
+								default: XSSE_UNREACHABLE();
+							}
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+						}
+					}
+					cmp_ret = vbicq_u8(cmp_ret, b_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_RANGES >> 2:
+				{
+					cmp_ret = vdupq_n_u8(0);
+					if (la >= 16) {
+						uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+						XSSE_PCMP_RANGES_BYTE(0, 0); XSSE_PCMP_RANGES_BYTE(1, 2); XSSE_PCMP_RANGES_BYTE(2, 4); XSSE_PCMP_RANGES_BYTE(3, 6);
+						XSSE_PCMP_RANGES_BYTE(4, 8); XSSE_PCMP_RANGES_BYTE(5, 10); XSSE_PCMP_RANGES_BYTE(6, 12); XSSE_PCMP_RANGES_BYTE(7, 14);
+
+						XSSE_VORR_U8(0, 1); XSSE_VORR_U8(2, 3); XSSE_VORR_U8(4, 5); XSSE_VORR_U8(6, 7);
+						XSSE_VORR_U8(0, 2); XSSE_VORR_U8(4, 6); XSSE_VORR_U8(0, 4);
+						cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 8) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+							XSSE_PCMP_RANGES_BYTE(0, 0); XSSE_PCMP_RANGES_BYTE(1, 2); XSSE_PCMP_RANGES_BYTE(2, 4); XSSE_PCMP_RANGES_BYTE(3, 6);
+
+							XSSE_VORR_U8(0, 1); XSSE_VORR_U8(2, 3); XSSE_VORR_U8(0, 2);
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+							checked = 8;
+							la2 -= 8;
+						}
+						if (la2 >= 4) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1;
+							if (checked == 8) {
+								XSSE_PCMP_RANGES_BYTE(0, 8); XSSE_PCMP_RANGES_BYTE(1, 10);
+							} else {
+								XSSE_PCMP_RANGES_BYTE(0, 0); XSSE_PCMP_RANGES_BYTE(1, 2);
+							}
+							XSSE_VORR_U8(0, 1);
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+							checked += 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint8x16_t tmp_cmp_0;
+							switch (checked) {
+								case 12: XSSE_PCMP_RANGES_BYTE(0, 12); break;
+								case 8: XSSE_PCMP_RANGES_BYTE(0, 8); break;
+								case 4: XSSE_PCMP_RANGES_BYTE(0, 4); break;
+								case 0: XSSE_PCMP_RANGES_BYTE(0, 0); break;
+								default: XSSE_UNREACHABLE();
+							}
+							cmp_ret = vorrq_u8(cmp_ret, tmp_cmp_0);
+						}
+					}
+					cmp_ret = vbicq_u8(cmp_ret, b_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_EQUAL_EACH >> 2:
+				{
+					uint8x16_t and_invalid_mask = vandq_u8(a_invalid_mask, b_invalid_mask);
+					uint8x16_t xor_invalid_mask = veorq_u8(a_invalid_mask, b_invalid_mask);
+					XSSE_PCMP_EACH_BYTE();
+					cmp_ret = vorrq_u8(cmp_ret, and_invalid_mask);
+					cmp_ret = vbicq_u8(cmp_ret, xor_invalid_mask);
+				}
+				break;
+
+			case _SIDD_CMP_EQUAL_ORDERED >> 2:
+				{
+					cmp_ret = vdupq_n_u8(0xFF);
+					uint8x16_t repeat_full_bits = vdupq_n_u8(0xFF);
+					if (la >= 16) {
+						uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+						uint8x16_t tmp_cmp_8, tmp_cmp_9, tmp_cmp_10, tmp_cmp_11, tmp_cmp_12, tmp_cmp_13, tmp_cmp_14, tmp_cmp_15;
+						XSSE_PCMP_ORDERED_BYTE(0, 0); XSSE_PCMP_ORDERED_BYTE(1, 1); XSSE_PCMP_ORDERED_BYTE(2, 2); XSSE_PCMP_ORDERED_BYTE(3, 3);
+						XSSE_PCMP_ORDERED_BYTE(4, 4); XSSE_PCMP_ORDERED_BYTE(5, 5); XSSE_PCMP_ORDERED_BYTE(6, 6); XSSE_PCMP_ORDERED_BYTE(7, 7);
+						XSSE_PCMP_ORDERED_BYTE(8, 8); XSSE_PCMP_ORDERED_BYTE(9, 9); XSSE_PCMP_ORDERED_BYTE(10, 10); XSSE_PCMP_ORDERED_BYTE(11, 11);
+						XSSE_PCMP_ORDERED_BYTE(12, 12); XSSE_PCMP_ORDERED_BYTE(13, 13); XSSE_PCMP_ORDERED_BYTE(14, 14); XSSE_PCMP_ORDERED_BYTE(15, 15);
+
+						XSSE_VAND_U8(0, 1); XSSE_VAND_U8(2, 3); XSSE_VAND_U8(4, 5); XSSE_VAND_U8(6, 7);
+						XSSE_VAND_U8(8, 9); XSSE_VAND_U8(10, 11); XSSE_VAND_U8(12, 13); XSSE_VAND_U8(14, 15);
+						XSSE_VAND_U8(0, 2); XSSE_VAND_U8(4, 6); XSSE_VAND_U8(8, 10); XSSE_VAND_U8(12, 14);
+						XSSE_VAND_U8(0, 4); XSSE_VAND_U8(8, 12); XSSE_VAND_U8(0, 8);
+						cmp_ret = vandq_u8(cmp_ret, tmp_cmp_0);
+					} else {
+						int checked = 0;
+						int la2 = la;
+						if (la2 >= 8) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3, tmp_cmp_4, tmp_cmp_5, tmp_cmp_6, tmp_cmp_7;
+							XSSE_PCMP_ORDERED_BYTE(0, 0); XSSE_PCMP_ORDERED_BYTE(1, 1); XSSE_PCMP_ORDERED_BYTE(2, 2); XSSE_PCMP_ORDERED_BYTE(3, 3);
+							XSSE_PCMP_ORDERED_BYTE(4, 4); XSSE_PCMP_ORDERED_BYTE(5, 5); XSSE_PCMP_ORDERED_BYTE(6, 6); XSSE_PCMP_ORDERED_BYTE(7, 7);
+
+							XSSE_VAND_U8(0, 1); XSSE_VAND_U8(2, 3); XSSE_VAND_U8(4, 5); XSSE_VAND_U8(6, 7);
+							XSSE_VAND_U8(0, 2); XSSE_VAND_U8(4, 6); XSSE_VAND_U8(0, 4);
+							cmp_ret = vandq_u8(cmp_ret, tmp_cmp_0);
+							checked = 8;
+							la2 -= 8;
+						}
+						if (la2 >= 4) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1, tmp_cmp_2, tmp_cmp_3;
+							if (checked == 8) {
+								XSSE_PCMP_ORDERED_BYTE(0, 8); XSSE_PCMP_ORDERED_BYTE(1, 9); XSSE_PCMP_ORDERED_BYTE(2, 10); XSSE_PCMP_ORDERED_BYTE(3, 11);
+							} else {
+								XSSE_PCMP_ORDERED_BYTE(0, 0); XSSE_PCMP_ORDERED_BYTE(1, 1); XSSE_PCMP_ORDERED_BYTE(2, 2); XSSE_PCMP_ORDERED_BYTE(3, 3);
+							}
+							XSSE_VAND_U8(0, 1); XSSE_VAND_U8(2, 3); XSSE_VAND_U8(0, 2);
+							cmp_ret = vandq_u8(cmp_ret, tmp_cmp_0);
+							checked += 4;
+							la2 -= 4;
+						}
+						if (la2 >= 2) {
+							uint8x16_t tmp_cmp_0, tmp_cmp_1;
+							switch (checked) {
+								case 12: XSSE_PCMP_ORDERED_BYTE(0, 12); XSSE_PCMP_ORDERED_BYTE(1, 13); break;
+								case 8: XSSE_PCMP_ORDERED_BYTE(0, 8); XSSE_PCMP_ORDERED_BYTE(1, 9); break;
+								case 4: XSSE_PCMP_ORDERED_BYTE(0, 4); XSSE_PCMP_ORDERED_BYTE(1, 5); break;
+								case 0: XSSE_PCMP_ORDERED_BYTE(0, 0); XSSE_PCMP_ORDERED_BYTE(1, 1); break;
+								default: XSSE_UNREACHABLE();
+							}
+							XSSE_VAND_U8(0, 1);
+							cmp_ret = vandq_u8(cmp_ret, tmp_cmp_0);
+							checked += 2;
+							la2 -= 2;
+						}
+						if (la2 == 1) {
+							uint8x16_t tmp_cmp_0;
+							switch (checked) {
+								case 14: XSSE_PCMP_ORDERED_BYTE(0, 14); break;
+								case 12: XSSE_PCMP_ORDERED_BYTE(0, 12); break;
+								case 10: XSSE_PCMP_ORDERED_BYTE(0, 10); break;
+								case 8: XSSE_PCMP_ORDERED_BYTE(0, 8); break;
+								case 6: XSSE_PCMP_ORDERED_BYTE(0, 6); break;
+								case 4: XSSE_PCMP_ORDERED_BYTE(0, 4); break;
+								case 2: XSSE_PCMP_ORDERED_BYTE(0, 2); break;
+								case 0: XSSE_PCMP_ORDERED_BYTE(0, 0); break;
+								default: XSSE_UNREACHABLE();
+							}
+							cmp_ret = vandq_u8(cmp_ret, tmp_cmp_0);
+						}
+					}
+				}
+				break;
+		}
+
+		/* negate */
+		if (imm8 & _SIDD_NEGATIVE_POLARITY) {
+			uint8x16_t not_cmp_ret = vmvnq_u8(cmp_ret);
+			if (imm8 & _SIDD_MASKED_NEGATIVE_POLARITY) {
+				cmp_ret = vbslq_u8(cmp_ret, not_cmp_ret, b_invalid_mask);
+			} else {
+				cmp_ret = not_cmp_ret;
+			}
+		}
+
+		uint64x2_t cmp_ret_64 = vreinterpretq_u64_u8(cmp_ret);
+
+		_xsse_pcmp_result_t result;
+		result.cf = (vgetq_lane_u64(cmp_ret_64, 0) | vgetq_lane_u64(cmp_ret_64, 1)) != 0;
+		result.zf = lb < 16;
+		result.sf = la < 16;
+		result.mask = cmp_ret;
+		return result;
+
+#undef XSSE_PCMP_ANY_BYTE
+#undef XSSE_PCMP_RANGES_BYTE
+#undef XSSE_PCMP_EACH_BYTE
+#undef XSSE_PCMP_EACH_BYTE
+#undef XSSE_PCMP_ORDERED_BYTE
+#undef XSSE_VORR_U8
+#undef XSSE_VAND_U8
+	}
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestra(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	return result.cf == 0 && result.zf == 0;
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestrc(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	return result.cf;
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestri(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+
+	if (imm8 & 0x01) {
+		uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
+		uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 1);
+		if (imm8 & _SIDD_MOST_SIGNIFICANT) {
+			if (high != 0) {
+				return _xsse_seach_most_significant_word_index(high) + 4;
+			} else if (low != 0) {
+				return _xsse_seach_most_significant_word_index(low);
+			} else {
+				return 8;
+			}
+		} else {
+			if (low != 0) {
+				return _xsse_seach_least_significant_word_index(low);
+			} else if (high != 0) {
+				return _xsse_seach_least_significant_word_index(high) + 4;
+			} else {
+				return 8;
+			}
+		}
+	} else {
+		uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
+		uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 1);
+		if (imm8 & _SIDD_MOST_SIGNIFICANT) {
+			if (high != 0) {
+				return _xsse_seach_most_significant_byte_index(high) + 8;
+			} else if (low != 0) {
+				return _xsse_seach_most_significant_byte_index(low);
+			} else {
+				return 16;
+			}
+		} else {
+			if (low != 0) {
+				return _xsse_seach_least_significant_byte_index(low);
+			} else if (high != 0) {
+				return _xsse_seach_least_significant_byte_index(high) + 8;
+			} else {
+				return 16;
+			}
+		}
+	}
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE __m128i _mm_cmpestrm(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+
+	if (imm8 & _SIDD_UNIT_MASK) {
+		return vreinterpretq_s8_u8(result.mask);
+	}
+
+	if (imm8 & 0x01) {
+		uint32x4_t high_bits = vreinterpretq_u32_u16(vshrq_n_u16(vreinterpretq_u16_u8(result.mask), 15));
+		uint64x2_t paired32 = vreinterpretq_u64_u32(vsraq_n_u32(high_bits, high_bits, 15));
+		uint8x16_t paired64 = vreinterpretq_u8_u64(vsraq_n_u64(paired32, paired32, 30));
+
+		return vreinterpretq_s8_u8((uint8x16_t) {
+			(vgetq_lane_u8(paired64, 0) | (vgetq_lane_u8(paired64, 8) << 4)), 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		});
+	} else {
+		uint16x8_t high_bits = vreinterpretq_u16_u8(vshrq_n_u8(result.mask, 7));
+		uint32x4_t paired16 = vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 7));
+		uint64x2_t paired32 = vreinterpretq_u64_u32(vsraq_n_u32(paired16, paired16, 14));
+		uint8x16_t paired64 = vreinterpretq_u8_u64(vsraq_n_u64(paired32, paired32, 28));
+
+		return vreinterpretq_s8_u8((uint8x16_t) {
+			vgetq_lane_u8(paired64, 0), vgetq_lane_u8(paired64, 8), 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		});
+	}
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestro(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
+	return low & 1;
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestrs(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	return result.sf;
+}
+
+XSSE_ATTR_CONST
+static XSSE_FORCE_INLINE int _mm_cmpestrz(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+{
+	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	return result.zf;
+}
+
+
+/*****************************************************************************
+ * CRC                                                                       *
+ *****************************************************************************/
+
+#ifdef __ARM_FEATURE_CRC32
+#include <arm_acle.h>
+#define _mm_crc32_u8(crc, v) (__crc32cb(crc, v))
+#define _mm_crc32_u16(crc, v) (__crc32ch(crc, v))
+#define _mm_crc32_u32(crc, v) (__crc32cw(crc, v))
+#define _mm_crc32_u64(crc, v) (__crc32cd(crc, v))
+#else
+static XSSE_FORCE_INLINE int _mm_crc32_u8(unsigned int crc, unsigned char v)
+{
+	crc ^= v;
+	static const uint32_t crc32_nibble_tbl[] = {
+		0x00000000, 0x105ec76f, 0x20bd8ede, 0x30e349b1,
+		0x417b1dbc, 0x5125dad3, 0x61c69362, 0x7198540d,
+		0x82f63b78, 0x92a8fc17, 0xa24bb5a6, 0xb21572c9,
+		0xc38d26c4, 0xd3d3e1ab, 0xe330a81a, 0xf36e6f75
+	};
+	crc = (crc >> 4) ^ crc32_nibble_tbl[crc & 0x0F];
+	crc = (crc >> 4) ^ crc32_nibble_tbl[crc & 0x0F];
+	return crc;
+}
+static XSSE_FORCE_INLINE int _mm_crc32_u16(unsigned int crc, unsigned short v)
+{
+	crc = _mm_crc32_u8(crc, (unsigned char) (v & 0xFF));
+	crc = _mm_crc32_u8(crc, (unsigned char) (v >> 8));
+	return crc;
+}
+static XSSE_FORCE_INLINE int _mm_crc32_u32(unsigned int crc, unsigned int v)
+{
+	crc = _mm_crc32_u16(crc, (unsigned short) (v & 0xFFFF));
+	crc = _mm_crc32_u16(crc, (unsigned short) (v >> 16));
+	return crc;
+}
+static XSSE_FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
+{
+	unsigned int crc32 = (unsigned int) crc;
+	crc32 = _mm_crc32_u32(crc32, (unsigned int) (v & 0xFFFFFFFF));
+	crc32 = _mm_crc32_u32(crc32, (unsigned int) (v >> 32));
+	return crc32;
+}
+#endif /* __ARM_FEATURE_CRC32 */
+
+#endif /* SSE4_2 */
 
 #endif /* XSSE_H */

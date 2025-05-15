@@ -10,3 +10,5 @@
 #ifndef assert_uint_equal
 #define assert_uint_equal(a, b) (assert_true(a == b))
 #endif
+
+#define WORDS(a, b) (((uint16_t) a << 8) | (uint16_t) b)
