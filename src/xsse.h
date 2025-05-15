@@ -33,7 +33,6 @@
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
-#  define XSSE_IS_CONSTANT(x) 1
 #  define XSSE_ATTR_OPTIMIZE_O2
 #elif defined(__GNUC__) || defined(__clang__)
 #  define XSSE_FORCE_INLINE inline __attribute__((always_inline))
@@ -41,7 +40,6 @@
 #  define XSSE_EXPECTED(x) __builtin_expect(!!(x), 1)
 #  define XSSE_UNEXPECTED(x) __builtin_expect(!!(x), 0)
 #  define XSSE_ATTR_CONST __attribute__((const))
-#  define XSSE_IS_CONSTANT(x) __builtin_constant_p(x)
 #  define XSSE_HAS_MACRO_EXTENSION
 #  ifdef __OPTIMIZE__
 #    define XSSE_IS_OPTIMIZE 
@@ -53,7 +51,6 @@
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
-#  define XSSE_IS_CONSTANT(x) 1
 #  define XSSE_ATTR_OPTIMIZE_O2
 #endif
 
