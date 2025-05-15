@@ -6,6 +6,9 @@ on:
       runner:
         required: true
         type: string
+      crc32:
+        required: true
+        type: string
 
 jobs:
   tests:
@@ -20,9 +23,15 @@ jobs:
           sudo apt update
           sudo apt install -y cmake gcc libcmocka-dev
 
-      - name: Configure
+      - name: Configure default
+        if : ${{ inputs.crc32 != 'arm-crc32' }}
         run: |
           cmake -S . -B build
+
+      - name: Configure with arm crc32
+        if: ${{ inputs.crc32 == 'arm-crc32' }}
+        run: |
+          cmake -DCMAKE_C_FLAGS="-march=armv8-a+crc" -DCMAKE_CXX_FLAGS="-march=armv8-a+crc" -S . -B build
 
       - name: Build tests
         run: |
