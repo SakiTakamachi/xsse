@@ -23,6 +23,14 @@
  * This is a wrapper library that allows you to use SSE2, SSE3, SSSE3, SSE4.1,
  * and SSE4.2 APIs directly with NEON.
  * Please note that APIs using `__m64`, `__m128`, or `__m128d` are not supported.
+ *
+ * In an SSE environment, if `__SSE2__` is defined, the `XSSE2` macro will be
+ * defined as well.
+ * Similarly, `XSSE3` through `XSSE4_2` will also be defined if their
+ * corresponding features are available.(Note that plain `SSE` is not supported.)
+ * 
+ * In a NEON environment, all of the macros `XSSE2`, `XSSE3`, `XSSSE3`,
+ * `XSSE4_1`, and `XSSE4_2` are defined.
  *********************************************************************************/
 
 
