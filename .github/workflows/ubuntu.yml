@@ -35,7 +35,7 @@ jobs:
 
       - name: Build tests
         run: |
-          cmake --build build
+          cmake --build build -j$(nproc)
 
       - name: Run tests
         run: |
