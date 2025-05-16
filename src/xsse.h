@@ -37,7 +37,6 @@
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
-#  define XSSE_ATTR_OPTIMIZE_O2
 #elif defined(__GNUC__) || defined(__clang__)
 #  define XSSE_FORCE_INLINE inline __attribute__((always_inline))
 #  define XSSE_UNREACHABLE() __builtin_unreachable()
@@ -48,13 +47,17 @@
 #  ifdef __OPTIMIZE__
 #    define XSSE_IS_OPTIMIZE 
 #  endif
-#  define XSSE_ATTR_OPTIMIZE_O2 __attribute__((optimize("O2")))
 #else
 #  define XSSE_FORCE_INLINE inline
 #  define XSSE_UNREACHABLE() do {} while (0)
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__)
+#  define XSSE_ATTR_OPTIMIZE_O2 __attribute__((optimize("O2")))
+#else
 #  define XSSE_ATTR_OPTIMIZE_O2
 #endif
 
@@ -1207,7 +1210,7 @@ typedef struct {
 	int8_t zf;
 	int8_t sf;
 	uint8x16_t mask;
-} _xsse_pcmp_result_t;
+} _xsse_pcmp_str_result_t;
 
 XSSE_ATTR_CONST
 static XSSE_FORCE_INLINE int _xsse_seach_most_significant_byte_index(uint64_t mask)
@@ -1277,7 +1280,7 @@ static XSSE_FORCE_INLINE int _xsse_seach_least_significant_word_index(uint64_t m
 XSSE_ATTR_OPTIMIZE_O2
 #endif
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE _xsse_pcmp_str_result_t _xsse_pcmp_str_core(const __m128i a, int la, const __m128i b, int lb, const int imm8, const int check_null)
 {
 	if (imm8 & 0x01) {
 		/* word */
@@ -1295,6 +1298,32 @@ static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, c
 
 #define XSSE_VORR_U16(a, b) tmp_cmp_##a = vorrq_u16(tmp_cmp_##a, tmp_cmp_##b);
 #define XSSE_VAND_U16(a, b) tmp_cmp_##a = vandq_u16(tmp_cmp_##a, tmp_cmp_##b);
+
+		if (check_null) {
+			uint16x8_t repeat_nul = vdupq_n_u16(0);
+			uint16x8_t cmp_nul_a = vceqq_u16(vreinterpretq_u16_s8(a), repeat_nul);
+			uint16x8_t cmp_nul_b = vceqq_u16(vreinterpretq_u16_s8(b), repeat_nul);
+
+			uint64_t low_a = vgetq_lane_u64(vreinterpretq_u64_u16(cmp_nul_a), 0);
+			uint64_t high_a = vgetq_lane_u64(vreinterpretq_u64_u16(cmp_nul_a), 1);
+			if (low_a != 0) {
+				la = _xsse_seach_least_significant_word_index(low_a);
+			} else if (high_a != 0) {
+				la = _xsse_seach_least_significant_word_index(high_a) + 4;
+			} else {
+				la = 8;
+			}
+
+			uint64_t low_b = vgetq_lane_u64(vreinterpretq_u64_u16(cmp_nul_b), 0);
+			uint64_t high_b = vgetq_lane_u64(vreinterpretq_u64_u16(cmp_nul_b), 1);
+			if (low_b != 0) {
+				lb = _xsse_seach_least_significant_word_index(low_b);
+			} else if (high_b != 0) {
+				lb = _xsse_seach_least_significant_word_index(high_b) + 4;
+			} else {
+				lb = 8;
+			}
+		}
 
 		uint16x8_t cmp_ret;
 		uint16x8_t lanes = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -1471,7 +1500,7 @@ static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, c
 
 		uint64x2_t cmp_ret_64 = vreinterpretq_u64_u16(cmp_ret);
 
-		_xsse_pcmp_result_t result;
+		_xsse_pcmp_str_result_t result;
 		result.cf = (vgetq_lane_u64(cmp_ret_64, 0) | vgetq_lane_u64(cmp_ret_64, 1)) != 0;
 		result.zf = lb < 8;
 		result.sf = la < 8;
@@ -1501,6 +1530,32 @@ static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, c
 
 #define XSSE_VORR_U8(a, b) tmp_cmp_##a = vorrq_u8(tmp_cmp_##a, tmp_cmp_##b);
 #define XSSE_VAND_U8(a, b) tmp_cmp_##a = vandq_u8(tmp_cmp_##a, tmp_cmp_##b);
+
+		if (check_null) {
+			uint8x16_t repeat_nul = vdupq_n_u8(0);
+			uint8x16_t cmp_nul_a = vceqq_u8(vreinterpretq_u8_s8(a), repeat_nul);
+			uint8x16_t cmp_nul_b = vceqq_u8(vreinterpretq_u8_s8(b), repeat_nul);
+
+			uint64_t low_a = vgetq_lane_u64(vreinterpretq_u64_u8(cmp_nul_a), 0);
+			uint64_t high_a = vgetq_lane_u64(vreinterpretq_u64_u8(cmp_nul_a), 1);
+			if (low_a != 0) {
+				la = _xsse_seach_least_significant_byte_index(low_a);
+			} else if (high_a != 0) {
+				la = _xsse_seach_least_significant_byte_index(high_a) + 8;
+			} else {
+				la = 16;
+			}
+
+			uint64_t low_b = vgetq_lane_u64(vreinterpretq_u64_u8(cmp_nul_b), 0);
+			uint64_t high_b = vgetq_lane_u64(vreinterpretq_u64_u8(cmp_nul_b), 1);
+			if (low_b != 0) {
+				lb = _xsse_seach_least_significant_byte_index(low_b);
+			} else if (high_b != 0) {
+				lb = _xsse_seach_least_significant_byte_index(high_b) + 8;
+			} else {
+				lb = 16;
+			}
+		}
 
 		uint8x16_t cmp_ret;
 		uint8x16_t lanes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -1743,7 +1798,7 @@ static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, c
 
 		uint64x2_t cmp_ret_64 = vreinterpretq_u64_u8(cmp_ret);
 
-		_xsse_pcmp_result_t result;
+		_xsse_pcmp_str_result_t result;
 		result.cf = (vgetq_lane_u64(cmp_ret_64, 0) | vgetq_lane_u64(cmp_ret_64, 1)) != 0;
 		result.zf = lb < 16;
 		result.sf = la < 16;
@@ -1761,27 +1816,27 @@ static XSSE_FORCE_INLINE _xsse_pcmp_result_t _xsse_pcmpe_core(const __m128i a, c
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestra(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_a(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 	return result.cf == 0 && result.zf == 0;
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestrc(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_c(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 	return result.cf;
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestri(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_i(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 
+	uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
+	uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 1);
 	if (imm8 & 0x01) {
-		uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
-		uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 1);
 		if (imm8 & _SIDD_MOST_SIGNIFICANT) {
 			if (high != 0) {
 				return _xsse_seach_most_significant_word_index(high) + 4;
@@ -1800,8 +1855,6 @@ static XSSE_FORCE_INLINE int _mm_cmpestri(const __m128i a, const int la, const _
 			}
 		}
 	} else {
-		uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
-		uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 1);
 		if (imm8 & _SIDD_MOST_SIGNIFICANT) {
 			if (high != 0) {
 				return _xsse_seach_most_significant_byte_index(high) + 8;
@@ -1823,9 +1876,9 @@ static XSSE_FORCE_INLINE int _mm_cmpestri(const __m128i a, const int la, const _
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE __m128i _mm_cmpestrm(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE __m128i _xsse_pcmp_str_m(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 
 	if (imm8 & _SIDD_UNIT_MASK) {
 		return vreinterpretq_s8_u8(result.mask);
@@ -1854,26 +1907,42 @@ static XSSE_FORCE_INLINE __m128i _mm_cmpestrm(const __m128i a, const int la, con
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestro(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_o(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 	uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(result.mask), 0);
 	return low & 1;
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestrs(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_s(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 	return result.sf;
 }
 
 XSSE_ATTR_CONST
-static XSSE_FORCE_INLINE int _mm_cmpestrz(const __m128i a, const int la, const __m128i b, const int lb, const int imm8)
+static XSSE_FORCE_INLINE int _xsse_pcmp_str_z(const __m128i a, const int la, const __m128i b, const int lb, const int imm8, const int check_null)
 {
-	_xsse_pcmp_result_t result = _xsse_pcmpe_core(a, la, b, lb, imm8 & 0x3F);
+	_xsse_pcmp_str_result_t result = _xsse_pcmp_str_core(a, la, b, lb, imm8 & 0x3F, check_null);
 	return result.zf;
 }
+
+#define _mm_cmpestra(a, la, b, lb, imm8) _xsse_pcmp_str_a(a, la, b, lb, imm8, 0)
+#define _mm_cmpestrc(a, la, b, lb, imm8) _xsse_pcmp_str_c(a, la, b, lb, imm8, 0)
+#define _mm_cmpestri(a, la, b, lb, imm8) _xsse_pcmp_str_i(a, la, b, lb, imm8, 0)
+#define _mm_cmpestrm(a, la, b, lb, imm8) _xsse_pcmp_str_m(a, la, b, lb, imm8, 0)
+#define _mm_cmpestro(a, la, b, lb, imm8) _xsse_pcmp_str_o(a, la, b, lb, imm8, 0)
+#define _mm_cmpestrs(a, la, b, lb, imm8) _xsse_pcmp_str_s(a, la, b, lb, imm8, 0)
+#define _mm_cmpestrz(a, la, b, lb, imm8) _xsse_pcmp_str_z(a, la, b, lb, imm8, 0)
+
+#define _mm_cmpistra(a, b, imm8) _xsse_pcmp_str_a(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistrc(a, b, imm8) _xsse_pcmp_str_c(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistri(a, b, imm8) _xsse_pcmp_str_i(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistrm(a, b, imm8) _xsse_pcmp_str_m(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistro(a, b, imm8) _xsse_pcmp_str_o(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistrs(a, b, imm8) _xsse_pcmp_str_s(a, 0, b, 0, imm8, 1)
+#define _mm_cmpistrz(a, b, imm8) _xsse_pcmp_str_z(a, 0, b, 0, imm8, 1)
 
 
 /*****************************************************************************

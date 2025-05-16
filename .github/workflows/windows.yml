@@ -34,7 +34,7 @@ jobs:
 
       - name: Build tests for x64
         if: ${{ inputs.arch == 'x64' }}
-        run: cmake --build build
+        run: cmake --build build -j $env:NUMBER_OF_PROCESSORS
 
       - name: Run Tests for x64
         if: ${{ inputs.arch == 'x64' }}
