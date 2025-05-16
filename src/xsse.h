@@ -37,7 +37,7 @@
 #ifndef XSSE_H
 #define XSSE_H
 
-#define XSSE_VERSION 10300
+#define XSSE_VERSION 10400
 
 #ifdef _MSC_VER
 #  define XSSE_FORCE_INLINE __forceinline

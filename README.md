@@ -9,7 +9,7 @@ Note: SSE (original) is not supported due to its age and limited adoption in mod
 
 - Support for floating-point APIs that rely on `__m128` or `__m128d` is not provided.
 
-- Support for legacy APIs that rely on `_m64` is not provided.
+- Support for legacy APIs that rely on `__m64` is not provided.
 
 - Functions that are difficult to replicate in NEON, such as `_mm_stream_si128`, are substituted with regular store instructions.
 
@@ -25,10 +25,7 @@ Recommended: C99 or later
 - SSE3
 - SSSE3
 - SSE4.1
-
-#### 🚧 Planned Support
-
-- SSE4.2 (planned)
+- SSE4.2
 
 ### ❌ Not Supported
 
@@ -72,7 +69,10 @@ XSSE also supports selected instructions from SSE3 and SSSE3. For example:
 
 #ifdef XSSE4_1
 #endif
+
+#ifdef XSSE4_2
+#endif
 ```
 
-On ARM platforms, if a macro like `XSSE4_1` is defined, it guarantees that `XSSSE3`, `XSSE3` and `XSSE2` are also defined.
-On x86_64, the corresponding `XSSE*` macros are defined automatically when compiler intrinsics like `__SSE2__`, `__SSE3__`, or `__SSE4_1__` are available.
+On ARM platforms, if a macro like `XSSE4_2` is defined, it guarantees that `XSSE4_1`, `XSSSE3`, `XSSE3`, and `XSSE2` are also defined.
+On x86_64, the corresponding `XSSE*` macros are automatically defined based on the availability of compiler intrinsics such as `__SSE2__`, `__SSE4_1__`, or `__SSE4_2__`.

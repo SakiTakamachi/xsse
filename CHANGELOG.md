@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.4.0] - 2025-05-16
+
+### Added
+- Added support for SSE4.2
+
+### Changed
+- The performance of some APIs has been improved.
+
+---
+
 ## [1.3.0] - 2025-05-11
 
 ### Added
