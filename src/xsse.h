@@ -19,6 +19,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *********************************************************************************
+ * This is a wrapper library that allows you to use SSE2, SSE3, SSSE3, SSE4.1,
+ * and SSE4.2 APIs directly with NEON.
+ * Please note that APIs using `__m64`, `__m128`, or `__m128d` are not supported.
  *********************************************************************************/
 
 
