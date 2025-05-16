@@ -37,6 +37,7 @@
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
+#  define XSSE_MEMCPY(p, vp, s) memcpy((p), (vp), (s))
 #elif defined(__GNUC__) || defined(__clang__)
 #  define XSSE_FORCE_INLINE inline __attribute__((always_inline))
 #  define XSSE_UNREACHABLE() __builtin_unreachable()
@@ -44,6 +45,7 @@
 #  define XSSE_UNEXPECTED(x) __builtin_expect(!!(x), 0)
 #  define XSSE_ATTR_CONST __attribute__((const))
 #  define XSSE_HAS_MACRO_EXTENSION
+#  define XSSE_MEMCPY(p, vp, s) __builtin_memcpy((p), (vp), (s))
 #  ifdef __OPTIMIZE__
 #    define XSSE_IS_OPTIMIZE 
 #  endif
@@ -53,6 +55,7 @@
 #  define XSSE_EXPECTED(x) (x)
 #  define XSSE_UNEXPECTED(x) (x)
 #  define XSSE_ATTR_CONST
+#  define XSSE_MEMCPY(p, vp, s) memcpy((p), (vp), (s))
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -118,40 +121,33 @@ typedef int8x16_t __m128i;
 	(vreinterpretq_s8_s32((int32x4_t) { (int32_t) (x0), (int32_t) (x1), (int32_t) (x2), (int32_t) (x3) }))
 
 #define _mm_setzero_si128() (vdupq_n_s8(0))
-static XSSE_FORCE_INLINE __m128i _mm_undefined_si128(void)
-{
-	int8x16_t x;
-	__asm__ __volatile__ ("" : "=w" (x));
-	return x;
-}
+#define _mm_undefined_si128() _mm_setzero_si128()
 
 #define _mm_load_si128(x) (vld1q_s8((const int8_t*) (x)))
 static XSSE_FORCE_INLINE __m128i _mm_loadu_si16(const void *ptr)
 {
-	int16x8_t blank;
-	__asm__ __volatile__ ("" : "=w" (blank));
-
 	int16_t val;
-	memcpy(&val, ptr, 2);
-	return vreinterpretq_s8_s16(vsetq_lane_s16(val, blank, 0));
+	XSSE_MEMCPY(&val, ptr, 2);
+	return vreinterpretq_s8_s16((int16x8_t) {
+		(int16_t) val, (int16_t) 0, (int16_t) 0, (int16_t) 0,
+		(int16_t) 0, (int16_t) 0, (int16_t) 0, (int16_t) 0
+	});
 }
 static XSSE_FORCE_INLINE __m128i _mm_loadu_si32(const void *ptr)
 {
-	int32x4_t blank;
-	__asm__ __volatile__ ("" : "=w" (blank));
-
 	int32_t val;
-	memcpy(&val, ptr, 4);
-	return vreinterpretq_s8_s32(vsetq_lane_s32(val, blank, 0));
+	XSSE_MEMCPY(&val, ptr, 4);
+	return vreinterpretq_s8_s32((int32x4_t) {
+		(int32_t) val, (int32_t) 0, (int32_t) 0, (int32_t) 0
+	});
 }
 static XSSE_FORCE_INLINE __m128i _mm_loadu_si64(const void *ptr)
 {
-	int64x2_t blank;
-	__asm__ __volatile__ ("" : "=w" (blank));
-
 	int64_t val;
-	memcpy(&val, ptr, 8);
-	return vreinterpretq_s8_s64(vsetq_lane_s64(val, blank, 0));
+	XSSE_MEMCPY(&val, ptr, 8);
+	return vreinterpretq_s8_s64((int64x2_t) {
+		(int64_t) val, (int64_t) 0
+	});
 }
 #define _mm_loadu_si128(x) _mm_load_si128(x)
 static XSSE_FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *x)
@@ -166,34 +162,22 @@ static XSSE_FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *x)
 static XSSE_FORCE_INLINE void _mm_storeu_si16(void *ptr, __m128i x)
 {
 	int16_t val = (int16_t) vgetq_lane_s16(vreinterpretq_s16_s8(x), 0);
-#if defined(__GNUC__) || defined(__clang__)
-	__builtin_memcpy(ptr, &val, sizeof(val));
-#else
-	memcpy(ptr, &val, sizeof(val));
-#endif
+	XSSE_MEMCPY(ptr, &val, sizeof(val));
 }
 static XSSE_FORCE_INLINE void _mm_storeu_si32(void *ptr, __m128i x)
 {
 	int32_t val = (int32_t) vgetq_lane_s32(vreinterpretq_s32_s8(x), 0);
-#if defined(__GNUC__) || defined(__clang__)
-	__builtin_memcpy(ptr, &val, sizeof(val));
-#else
-	memcpy(ptr, &val, sizeof(val));
-#endif
+	XSSE_MEMCPY(ptr, &val, sizeof(val));
 }
 static XSSE_FORCE_INLINE void _mm_storeu_si64(void *ptr, __m128i x)
 {
 	int64_t val = (int64_t) vgetq_lane_s64(vreinterpretq_s64_s8(x), 0);
-#if defined(__GNUC__) || defined(__clang__)
-	__builtin_memcpy(ptr, &val, sizeof(val));
-#else
-	memcpy(ptr, &val, sizeof(val));
-#endif
+	XSSE_MEMCPY(ptr, &val, sizeof(val));
 }
 #define _mm_storeu_si128(to, x) _mm_store_si128(to, x)
 #define _mm_stream_si128(to, x) _mm_store_si128(to, x)
-#define _mm_stream_si32(to, x) (*(volatile int32_t*) (to) = (int32_t) (x))
-#define _mm_stream_si64(to, x) (*(volatile int64_t*) (to) = (int64_t) (x))
+#define _mm_stream_si32(to, x) (*(int32_t*) (to) = (int32_t) (x))
+#define _mm_stream_si64(to, x) (*(int64_t*) (to) = (int64_t) (x))
 
 
 /*****************************************************************************
