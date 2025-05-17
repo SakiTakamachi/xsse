@@ -76,6 +76,10 @@
 #include <arm_neon.h>
 #include <string.h>
 typedef int8x16_t __m128i;
+typedef struct __m256i {
+	__m128i v0;
+	__m128i v1;
+} __m256i;
 #endif
 
 
@@ -1983,5 +1987,200 @@ static XSSE_FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 #endif /* __ARM_FEATURE_CRC32 */
 
 #endif /* SSE4_2 */
+
+
+/*****************************************************************************
+ *                                                                           *
+ * AVX                                                                       *
+ *                                                                           *
+ *****************************************************************************/
+
+#if defined(__AVX__)
+#include <avxintrin.h>
+#define XSSE_AVX
+
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define XSSE_AVX
+
+/*****************************************************************************
+ * Load / Store                                                              *
+ *****************************************************************************/
+
+static XSSE_FORCE_INLINE __m256i _mm256_set_epi8(
+	char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24,
+	char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16,
+	char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8,
+	char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi8(e15, e14, e13, e12, e11, e10, e9, e8, e7, e6, e5, e4, e3, e2, e1, e0);
+	x.v1 = _mm_set_epi8(e31, e30, e29, e28, e27, e26, e25, e24, e23, e22, e21, e20, e19, e18, e17, e16);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set_epi16(
+	short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8,
+	short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi16(e7, e6, e5, e4, e3, e2, e1, e0);
+	x.v1 = _mm_set_epi16(e15, e14, e13, e12, e11, e10, e9, e8);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi32(e3, e2, e1, e0);
+	x.v1 = _mm_set_epi32(e7, e6, e5, e4);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set_epi64x(int64_t e3, int64_t e2, int64_t e1, int64_t e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi64x(e1, e0);
+	x.v1 = _mm_set_epi64x(e3, e2);
+	return x;
+}
+
+static XSSE_FORCE_INLINE __m256i _mm256_set1_epi8(char a)
+{
+	__m256i x;
+	__m128i va = _mm_set1_epi8(a);
+	x.v0 = va;
+	x.v1 = va;
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set1_epi16(short a)
+{
+	__m256i x;
+	__m128i va = _mm_set1_epi16(a);
+	x.v0 = va;
+	x.v1 = va;
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set1_epi32(int a)
+{
+	__m256i x;
+	__m128i va = _mm_set1_epi32(a);
+	x.v0 = va;
+	x.v1 = va;
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_set1_epi64x(int64_t a)
+{
+	__m256i x;
+	__m128i va = _mm_set1_epi64x(a);
+	x.v0 = va;
+	x.v1 = va;
+	return x;
+}
+
+static XSSE_FORCE_INLINE __m256i _mm256_setr_epi8(
+	char e31, char e30, char e29, char e28, char e27, char e26, char e25, char e24,
+	char e23, char e22, char e21, char e20, char e19, char e18, char e17, char e16,
+	char e15, char e14, char e13, char e12, char e11, char e10, char e9, char e8,
+	char e7, char e6, char e5, char e4, char e3, char e2, char e1, char e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi8(e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15);
+	x.v1 = _mm_set_epi8(e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, e26, e27, e28, e29, e30, e31);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_setr_epi16(
+	short e15, short e14, short e13, short e12, short e11, short e10, short e9, short e8,
+	short e7, short e6, short e5, short e4, short e3, short e2, short e1, short e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi16(e0, e1, e2, e3, e4, e5, e6, e7);
+	x.v1 = _mm_set_epi16(e8, e9, e10, e11, e12, e13, e14, e15);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_setr_epi32(int e7, int e6, int e5, int e4, int e3, int e2, int e1, int e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi32(e0, e1, e2, e3);
+	x.v1 = _mm_set_epi32(e4, e5, e6, e7);
+	return x;
+}
+static XSSE_FORCE_INLINE __m256i _mm256_setr_epi64x(int64_t e3, int64_t e2, int64_t e1, int64_t e0)
+{
+	__m256i x;
+	x.v0 = _mm_set_epi64x(e0, e1);
+	x.v1 = _mm_set_epi64x(e2, e3);
+	return x;
+}
+
+static XSSE_FORCE_INLINE __m256i _mm256_set_m128i(__m128i hi, __m128i lo)
+{
+	__m256i x;
+	x.v0 = lo;
+	x.v1 = hi;
+	return x;
+}
+#define _mm256_setr_m128i(lo, hi) _mm256_set_m128i(hi, lo)
+
+static XSSE_FORCE_INLINE __m256i _mm256_setzero_si256(void)
+{
+	__m256i x;
+	x.v0 = _mm_setzero_si128();
+	x.v1 = _mm_setzero_si128();
+	return x;
+}
+#define _mm256_undefined_si256() _mm256_setzero_si256()
+
+static XSSE_FORCE_INLINE __m256i _mm256_load_si256(__m256i const *mem_addr)
+{
+	__m256i x;
+	x.v0 = _mm_load_si128((__m128i*) mem_addr);
+	x.v1 = _mm_load_si128(((__m128i*) mem_addr) + 1);
+	return x;
+}
+#define _mm256_loadu_si256(x) _mm256_load_si256(x)
+#define _mm256_lddqu_si256(x) _mm256_load_si256(x)
+static XSSE_FORCE_INLINE __m256i _mm256_loadu2_m128i(__m128i const *hiaddr, __m128i const *loaddr)
+{
+	__m256i x;
+	x.v0 = _mm_load_si128((__m128i*) loaddr);
+	x.v1 = _mm_load_si128((__m128i*) hiaddr);
+	return x;
+}
+
+static XSSE_FORCE_INLINE void _mm256_store_si256(__m256i *mem_addr, __m256i x)
+{
+	_mm_store_si128((__m128i*) mem_addr, x.v0);
+	_mm_store_si128(((__m128i*) mem_addr) + 1, x.v1);
+}
+#define _mm256_storeu_si256(to, x) _mm256_store_si256((to), (x))
+#define _mm256_stream_si256(to, x) _mm256_store_si256((to), (x))
+static XSSE_FORCE_INLINE void _mm256_storeu2_m128i(__m128i *hiaddr, __m128i *loaddr, __m256i x)
+{
+	_mm_store_si128(loaddr, x.v0);
+	_mm_store_si128(hiaddr, x.v1);
+}
+
+
+/*****************************************************************************
+ * Convert                                                                   *
+ *****************************************************************************/
+
+static XSSE_FORCE_INLINE __m256i _mm256_castsi128_si256(__m128i a)
+{
+	__m256i x;
+	x.v0 = a;
+	return x;
+}
+#define _mm256_castsi256_si128(x) ((x).v0)
+#define _mm256_cvtsi256_si32(x) _mm_cvtsi128_si32((x).v0)
+
+
+/*****************************************************************************
+ * Others                                                                    *
+ *****************************************************************************/
+
+#define _mm_extract_epi16(x, imm) (vgetq_lane_s16(vreinterpretq_s16_s8(x), (imm)))
+#define _mm_insert_epi16(x, val, imm) (vreinterpretq_s8_s16(vsetq_lane_s16((int16_t) (val), vreinterpretq_s16_s8(x), (imm))))
+
+
+#endif /* AVX */
 
 #endif /* XSSE_H */
