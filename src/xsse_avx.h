@@ -225,33 +225,35 @@ static XSSE_FORCE_INLINE __m256i _mm256_castsi128_si256(__m128i a)
 
 static XSSE_FORCE_INLINE int _mm256_testc_si256(__m256i a, __m256i b)
 {
-	return _mm_testc_si128(a.v0, b.v0) && _mm_testc_si128(a.v1, b.v1);
+	int8x16_t andnot_1 = vbicq_s8(b.v0, a.v0);
+	int8x16_t andnot_2 = vbicq_s8(b.v1, a.v1);
+	int8x16_t andnot = vorrq_s8(andnot_1, andnot_2);
+	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
+	return (vgetq_lane_u64(andnot64, 0) == 0) && (vgetq_lane_u64(andnot64, 1) == 0);
 }
-static XSSE_FORCE_INLINE int _mm256_testnzc_si256(__m256i x, __m256i mask)
+static XSSE_FORCE_INLINE int _mm256_testnzc_si256(__m256i mask, __m256i x)
 {
-	int8x16_t and_1 = vandq_s8(mask.v0, x.v0);
-	int8x16_t and_2 = vandq_s8(mask.v1, x.v1);
-	uint64x2_t and64_1 = vreinterpretq_u64_s8(and_1);
-	uint64x2_t and64_2 = vreinterpretq_u64_s8(and_2);
-	int has_ones = (
-		vgetq_lane_u64(and64_1, 0) | vgetq_lane_u64(and64_1, 1) |
-		vgetq_lane_u64(and64_2, 0) | vgetq_lane_u64(and64_2, 1)
-	) != 0;
+	int8x16_t and_1 = vandq_s8(x.v0, mask.v0);
+	int8x16_t and_2 = vandq_s8(x.v1, mask.v1);
+	int8x16_t and = vorrq_s8(and_1, and_2);
+	uint64x2_t and64 = vreinterpretq_u64_s8(and);
+	int has_ones = (vgetq_lane_u64(and64, 0) | vgetq_lane_u64(and64, 1)) != 0;
 
-	int8x16_t andnot_1 = vbicq_s8(mask.v0, x.v0);
-	int8x16_t andnot_2 = vbicq_s8(mask.v1, x.v1);
-	uint64x2_t andnot64_1 = vreinterpretq_u64_s8(andnot_1);
-	uint64x2_t andnot64_2 = vreinterpretq_u64_s8(andnot_2);
-	int has_zeros = (
-		vgetq_lane_u64(andnot64_1, 0) | vgetq_lane_u64(andnot64_1, 1) |
-		vgetq_lane_u64(andnot64_2, 0) | vgetq_lane_u64(andnot64_2, 1)
-	) != 0;
+	int8x16_t andnot_1 = vbicq_s8(x.v0, mask.v0);
+	int8x16_t andnot_2 = vbicq_s8(x.v1, mask.v1);
+	int8x16_t andnot = vorrq_s8(andnot_1, andnot_2);
+	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
+	int has_zeros = (vgetq_lane_u64(andnot64, 0) | vgetq_lane_u64(andnot64, 1)) != 0;
 
 	return has_ones && has_zeros;
 }
 static XSSE_FORCE_INLINE int _mm256_testz_si256(__m256i mask, __m256i x)
 {
-	return _mm_testz_si128(mask.v0, x.v0) && _mm_testz_si128(mask.v1, x.v1);
+	int8x16_t masked_1 = vandq_s8(x.v0, mask.v0);
+	int8x16_t masked_2 = vandq_s8(x.v1, mask.v1);
+	int8x16_t masked = vorrq_s8(masked_1, masked_2);
+	uint64x2_t masked64 = vreinterpretq_u64_s8(masked);
+	return (vgetq_lane_u64(masked64, 0) == 0) && (vgetq_lane_u64(masked64, 1) == 0);
 }
 
 
