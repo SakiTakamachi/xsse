@@ -947,7 +947,7 @@ static XSSE_FORCE_INLINE __m128i _mm_minpos_epu16(__m128i x)
 		index_mask8 >>= 8;
 	}
 #endif
-	return 	vreinterpretq_s8_u16((uint16x8_t) { min, index, 0, 0, 0, 0, 0, 0 });
+	return vreinterpretq_s8_u16((uint16x8_t) { min, index, 0, 0, 0, 0, 0, 0 });
 }
 
 static XSSE_FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
@@ -1140,7 +1140,7 @@ static XSSE_FORCE_INLINE __m128i _mm_blendv_epi8(__m128i a, __m128i b, __m128i m
 	uint8x16_t umask = vreinterpretq_u8_s8(mask);
 	uint8x16_t repeat_0x80 = vdupq_n_u8(0x80);
 	uint8x16_t mask_fill = vcgeq_u8(umask, repeat_0x80);
-	return 	vbslq_s8(mask_fill, b, a);
+	return vbslq_s8(mask_fill, b, a);
 }
 
 #endif /* SSE4_1 */
