@@ -1,14 +1,14 @@
 #include "../xsse_test.h"
 
-static void test_mm256_extract_epi32_1(void **state)
+static void test_mm256_extract_epi32_0(void **state)
 {
 	(void) state;
 
 #ifdef XSSE_AVX
 	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
 
-	int32_t expected = -7;
-	int32_t actual = _mm256_extract_epi32(x, 7);
+	int32_t expected = 0;
+	int32_t actual = _mm256_extract_epi32(x, 0);
 
 	assert_int_equal(actual, expected);
 #else
@@ -16,7 +16,7 @@ static void test_mm256_extract_epi32_1(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi32_2(void **state)
+static void test_mm256_extract_epi32_1(void **state)
 {
 	(void) state;
 
@@ -32,15 +32,15 @@ static void test_mm256_extract_epi32_2(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi32_3(void **state)
+static void test_mm256_extract_epi32_2(void **state)
 {
 	(void) state;
 
 #ifdef XSSE_AVX
 	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
 
-	int32_t expected = -4;
-	int32_t actual = _mm256_extract_epi32(x, 4);
+	int32_t expected = 2;
+	int32_t actual = _mm256_extract_epi32(x, 2);
 
 	assert_int_equal(actual, expected);
 #else
@@ -48,7 +48,7 @@ static void test_mm256_extract_epi32_3(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi32_4(void **state)
+static void test_mm256_extract_epi32_3(void **state)
 {
 	(void) state;
 
@@ -64,7 +64,71 @@ static void test_mm256_extract_epi32_4(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi64_1(void **state)
+static void test_mm256_extract_epi32_4(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX
+	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
+
+	int32_t expected = -4;
+	int32_t actual = _mm256_extract_epi32(x, 4);
+
+	assert_int_equal(actual, expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm256_extract_epi32_5(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX
+	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
+
+	int32_t expected = -5;
+	int32_t actual = _mm256_extract_epi32(x, 5);
+
+	assert_int_equal(actual, expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm256_extract_epi32_6(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX
+	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
+
+	int32_t expected = -6;
+	int32_t actual = _mm256_extract_epi32(x, 6);
+
+	assert_int_equal(actual, expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm256_extract_epi32_7(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX
+	__m256i x = _mm256_setr_epi32(0, 1, 2, 3, -4, -5, -6, -7);
+
+	int32_t expected = -7;
+	int32_t actual = _mm256_extract_epi32(x, 7);
+
+	assert_int_equal(actual, expected);
+#else
+	skip();
+#endif
+}
+
+static void test_mm256_extract_epi64_0(void **state)
 {
 	(void) state;
 
@@ -80,7 +144,7 @@ static void test_mm256_extract_epi64_1(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi64_2(void **state)
+static void test_mm256_extract_epi64_1(void **state)
 {
 	(void) state;
 
@@ -96,7 +160,7 @@ static void test_mm256_extract_epi64_2(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi64_3(void **state)
+static void test_mm256_extract_epi64_2(void **state)
 {
 	(void) state;
 
@@ -112,7 +176,7 @@ static void test_mm256_extract_epi64_3(void **state)
 #endif
 }
 
-static void test_mm256_extract_epi64_4(void **state)
+static void test_mm256_extract_epi64_3(void **state)
 {
 	(void) state;
 
@@ -128,7 +192,7 @@ static void test_mm256_extract_epi64_4(void **state)
 #endif
 }
 
-static void test_mm256_extractf128_si256_1(void **state)
+static void test_mm256_extractf128_si256_0(void **state)
 {
 	(void) state;
 
@@ -148,7 +212,7 @@ static void test_mm256_extractf128_si256_1(void **state)
 #endif
 }
 
-static void test_mm256_extractf128_si256_2(void **state)
+static void test_mm256_extractf128_si256_1(void **state)
 {
 	(void) state;
 
@@ -171,16 +235,20 @@ static void test_mm256_extractf128_si256_2(void **state)
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(test_mm256_extract_epi32_0),
 		cmocka_unit_test(test_mm256_extract_epi32_1),
 		cmocka_unit_test(test_mm256_extract_epi32_2),
 		cmocka_unit_test(test_mm256_extract_epi32_3),
 		cmocka_unit_test(test_mm256_extract_epi32_4),
+		cmocka_unit_test(test_mm256_extract_epi32_5),
+		cmocka_unit_test(test_mm256_extract_epi32_6),
+		cmocka_unit_test(test_mm256_extract_epi32_7),
+		cmocka_unit_test(test_mm256_extract_epi64_0),
 		cmocka_unit_test(test_mm256_extract_epi64_1),
 		cmocka_unit_test(test_mm256_extract_epi64_2),
 		cmocka_unit_test(test_mm256_extract_epi64_3),
-		cmocka_unit_test(test_mm256_extract_epi64_4),
-		cmocka_unit_test(test_mm256_extractf128_si256_1),
-		cmocka_unit_test(test_mm256_extractf128_si256_2)
+		cmocka_unit_test(test_mm256_extractf128_si256_0),
+		cmocka_unit_test(test_mm256_extractf128_si256_1)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
