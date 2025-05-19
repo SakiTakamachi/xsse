@@ -666,12 +666,9 @@ static XSSE_FORCE_INLINE void _mm_pause(void)
 #define XSSSE3
 
 /*****************************************************************************
- * Integer Arithmetic Operations                                             *
+ * Bit shift / Bit wise                                                      *
  *****************************************************************************/
 
-#define _mm_abs_epi8(x) (vabsq_s8(x))
-#define _mm_abs_epi16(x) (vreinterpretq_s8_s16(vabsq_s16(vreinterpretq_s16_s8(x))))
-#define _mm_abs_epi32(x) (vreinterpretq_s8_s32(vabsq_s32(vreinterpretq_s32_s8(x))))
 static XSSE_FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
 {
 	switch (imm) {
@@ -714,6 +711,15 @@ static XSSE_FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
 		default: return vdupq_n_s8(0);
 	}
 }
+
+
+/*****************************************************************************
+ * Integer Arithmetic Operations                                             *
+ *****************************************************************************/
+
+#define _mm_abs_epi8(x) (vabsq_s8(x))
+#define _mm_abs_epi16(x) (vreinterpretq_s8_s16(vabsq_s16(vreinterpretq_s16_s8(x))))
+#define _mm_abs_epi32(x) (vreinterpretq_s8_s32(vabsq_s32(vreinterpretq_s32_s8(x))))
 
 #define _mm_hadd_epi16(a, b) (vreinterpretq_s8_u16(vpaddq_u16(vreinterpretq_u16_s8(a), vreinterpretq_u16_s8(b))))
 #define _mm_hadd_epi32(a, b) (vreinterpretq_s8_u32(vpaddq_u32(vreinterpretq_u32_s8(a), vreinterpretq_u32_s8(b))))
