@@ -6,6 +6,7 @@
 #include <string.h>
 #include <cmocka.h>
 #include "../src/xsse.h"
+#include "../src/xsse_avx.h"
 
 #ifndef assert_uint_equal
 #define assert_uint_equal(a, b) (assert_true(a == b))
