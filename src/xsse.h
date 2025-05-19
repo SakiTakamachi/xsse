@@ -1085,17 +1085,17 @@ static XSSE_FORCE_INLINE int _mm_test_all_ones(__m128i x)
 }
 static XSSE_FORCE_INLINE int _mm_test_all_zeros(__m128i mask, __m128i x)
 {
-	int8x16_t masked = vandq_s8(mask, x);
+	int8x16_t masked = vandq_s8(x, mask);
 	uint64x2_t masked64 = vreinterpretq_u64_s8(masked);
 	return (vgetq_lane_u64(masked64, 0) == 0) && (vgetq_lane_u64(masked64, 1) == 0);
 }
-static XSSE_FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i x, __m128i mask)
+static XSSE_FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i mask, __m128i x)
 {
-	int8x16_t and = vandq_s8(mask, x);
+	int8x16_t and = vandq_s8(x, mask);
 	uint64x2_t and64 = vreinterpretq_u64_s8(and);
 	int has_ones = (vgetq_lane_u64(and64, 0) | vgetq_lane_u64(and64, 1)) != 0;
 
-	int8x16_t andnot = vbicq_s8(mask, x);
+	int8x16_t andnot = vbicq_s8(x, mask);
 	uint64x2_t andnot64 = vreinterpretq_u64_s8(andnot);
 	int has_zeros = (vgetq_lane_u64(andnot64, 0) | vgetq_lane_u64(andnot64, 1)) != 0;
 
