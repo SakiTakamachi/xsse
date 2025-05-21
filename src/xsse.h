@@ -405,19 +405,7 @@ static XSSE_FORCE_INLINE __m128i _mm_mullo_epi16(__m128i a, __m128i b)
 {
 	int16x8_t a16 = vreinterpretq_s16_s8(a);
 	int16x8_t b16 = vreinterpretq_s16_s8(b);
-
-	int16x4_t a_lo = vget_low_s16(a16);
-	int16x4_t a_hi = vget_high_s16(a16);
-	int16x4_t b_lo = vget_low_s16(b16);
-	int16x4_t b_hi = vget_high_s16(b16);
-
-	int32x4_t mul_lo = vmull_s16(a_lo, b_lo);
-	int32x4_t mul_hi = vmull_s16(a_hi, b_hi);
-
-	int16x4_t narrowed_lo = vmovn_s32(mul_lo);
-	int16x4_t narrowed_hi = vmovn_s32(mul_hi);
-
-	return vreinterpretq_s8_s16(vcombine_s16(narrowed_lo, narrowed_hi));
+	return vreinterpretq_s8_s16(vmulq_s16(a16, b16));
 }
 static XSSE_FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
@@ -967,16 +955,9 @@ static XSSE_FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
 }
 static XSSE_FORCE_INLINE __m128i _mm_mullo_epi32(__m128i a, __m128i b)
 {
-	int32x2_t a_lo = vget_low_s32(vreinterpretq_s32_s8(a));
-	int32x2_t a_hi = vget_high_s32(vreinterpretq_s32_s8(a));
-	int32x2_t b_lo = vget_low_s32(vreinterpretq_s32_s8(b));
-	int32x2_t b_hi = vget_high_s32(vreinterpretq_s32_s8(b));
-
-	int64x2_t mul_lo = vmull_s32(a_lo, b_lo);
-	int64x2_t mul_hi = vmull_s32(a_hi, b_hi);
-	int32x2_t lo = vmovn_s64(mul_lo);
-	int32x2_t hi = vmovn_s64(mul_hi);
-	return vreinterpretq_s8_s32(vcombine_s32(lo, hi));
+	int32x4_t a32 = vreinterpretq_s32_s8(a);
+	int32x4_t b32 = vreinterpretq_s32_s8(b);
+	return vreinterpretq_s8_s32(vmulq_s32(a32, b32));
 }
 
 static XSSE_FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm8)
