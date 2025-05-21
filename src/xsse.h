@@ -861,7 +861,14 @@ static XSSE_FORCE_INLINE __m128i _mm_sign_epi32(__m128i a, __m128i b)
 
 static XSSE_FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
-	return vqtbl1q_s8(a, vreinterpretq_u8_s8(b));
+	uint8x16_t index = vreinterpretq_u8_s8(b);
+	uint8x16_t repeat_0x0F = vdupq_n_u8(0x0F);
+	uint8x16_t repeat_0x80 = vdupq_n_u8(0x80);
+
+	uint8x16_t and_mask = vandq_u8(index, repeat_0x0F);
+	uint8x16_t cmp_mask = vcgeq_u8(index, repeat_0x80);
+	uint8x16_t masked_index = vorrq_u8(and_mask, cmp_mask);
+	return vqtbl1q_s8(a, masked_index);
 }
 
 #endif /* SSSE3 */
