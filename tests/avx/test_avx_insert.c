@@ -1446,6 +1446,60 @@ static void test_mm256_insertf128_si256_1(void **state)
 #endif
 }
 
+static void test_mm256_inserti128_si256_0(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX2
+	__m256i a = _mm256_setr_epi8(
+		0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15,
+		0, -1, -2, -3, -4, -5, -6, -7, 8, 9, 10, 11, 12, 13, 14, 15
+	);
+	__m128i b = _mm_setr_epi8(0, 21, 22, 23, 24, 25, 26, 27, -28, -29, -30, -31, -32, -33, -34, -35);
+
+	int8_t expected[32] = {
+		0, 21, 22, 23, 24, 25, 26, 27, -28, -29, -30, -31, -32, -33, -34, -35,
+		0, -1, -2, -3, -4, -5, -6, -7, 8, 9, 10, 11, 12, 13, 14, 15
+	};
+	int8_t actual[32];
+	__m256i result = _mm256_inserti128_si256(a, b, 0);
+	_mm256_storeu_si256((__m256i*) actual, result);
+
+	for (int i = 0; i < 32; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
+static void test_mm256_inserti128_si256_1(void **state)
+{
+	(void) state;
+
+#ifdef XSSE_AVX2
+	__m256i a = _mm256_setr_epi8(
+		0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15,
+		0, -1, -2, -3, -4, -5, -6, -7, 8, 9, 10, 11, 12, 13, 14, 15
+	);
+	__m128i b = _mm_setr_epi8(0, 21, 22, 23, 24, 25, 26, 27, -28, -29, -30, -31, -32, -33, -34, -35);
+
+	int8_t expected[32] = {
+		0, 1, 2, 3, 4, 5, 6, 7, -8, -9, -10, -11, -12, -13, -14, -15,
+		0, 21, 22, 23, 24, 25, 26, 27, -28, -29, -30, -31, -32, -33, -34, -35
+	};
+	int8_t actual[32];
+	__m256i result = _mm256_inserti128_si256(a, b, 1);
+	_mm256_storeu_si256((__m256i*) actual, result);
+
+	for (int i = 0; i < 32; i++) {
+		assert_int_equal(actual[i], expected[i]);
+	}
+#else
+	skip();
+#endif
+}
+
 int main(void)
 {
 	const struct CMUnitTest tests[] = {
@@ -1510,7 +1564,9 @@ int main(void)
 		cmocka_unit_test(test_mm256_insert_epi64_2),
 		cmocka_unit_test(test_mm256_insert_epi64_3),
 		cmocka_unit_test(test_mm256_insertf128_si256_0),
-		cmocka_unit_test(test_mm256_insertf128_si256_1)
+		cmocka_unit_test(test_mm256_insertf128_si256_1),
+		cmocka_unit_test(test_mm256_inserti128_si256_0),
+		cmocka_unit_test(test_mm256_inserti128_si256_1)
 	};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }
