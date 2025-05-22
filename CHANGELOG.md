@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.0.0] - 2025-05-22
+
+### Added
+- Added support for AVX and AVX2
+
+### Changed
+- The performance of some APIs has been improved.
+
+---
+
 ## [1.4.0] - 2025-05-16
 
 ### Added
