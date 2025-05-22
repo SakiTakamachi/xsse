@@ -348,16 +348,7 @@ static XSSE_FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
 
 	int32x4_t mul_lo = vmull_s16(a_lo, b_lo);
 	int32x4_t mul_hi = vmull_s16(a_hi, b_hi);
-
-	int32x2_t mul_lo_lo = vget_low_s32(mul_lo);
-	int32x2_t mul_lo_hi = vget_high_s32(mul_lo);
-	int32x2_t mul_hi_lo = vget_low_s32(mul_hi);
-	int32x2_t mul_hi_hi = vget_high_s32(mul_hi);
-
-	int32x2_t mul_lo_sum = vpadd_s32(mul_lo_lo, mul_lo_hi);
-	int32x2_t mul_hi_sum = vpadd_s32(mul_hi_lo, mul_hi_hi);
-
-	return vreinterpretq_s8_s32(vcombine_s32(mul_lo_sum, mul_hi_sum));
+	return vreinterpretq_s8_s32(vpaddq_s32(mul_lo, mul_hi));
 }
 
 #define _mm_max_epu8(a, b) (vreinterpretq_s8_u8(vmaxq_u8(vreinterpretq_u8_s8(a), vreinterpretq_u8_s8(b))))
